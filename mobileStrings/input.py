@@ -3,42 +3,37 @@
 from collections import namedtuple, OrderedDict
 import json
 import collections
+from mobileStrings import csv_unicode
 import os
 
 __author__ = 'nic'
 
-Wording = namedtuple("Wording", 'key exportable comment is_comment translations')
+Wording = namedtuple("Wording", [
+    'key',
+    'exportable',
+    'is_comment',
+    'comment',
+    'metadata',
+    'translations'])
+empty_wording = Wording('', True, '', False, OrderedDict(), OrderedDict())
+create_wording = lambda **kwargs: empty_wording._replace(**kwargs)
 
-class FormatSpec(object):
-
-    def __init__(self, key_col, exportable_col, comment_col, is_comment_col, translations_start_col,
-                 exportable_rule=lambda value: bool(value),
-                 is_comment_rule=lambda value: bool(value),
-                 generic_token='{}'):
-        """
-        :param key_col: int
-        :param exportable_rule:
-        :param comment_col: int
-        :param is_comment_rule:
-        :param translations_start_col: int
-        """
-        self.generic_token = generic_token
-        self.key_col = key_col
-        self.exportable_col = exportable_col
-        self.is_comment_col = is_comment_col
-        self.comment_col = comment_col
-        self.translations_start_col = translations_start_col
-        self.exportable_rule = exportable_rule
-        self.is_comment_rule = is_comment_rule
-
-default_format_specs = FormatSpec(*range(len(Wording._fields)))
+FormatSpec = namedtuple('FormatSpec', [
+    'key_col',
+    'exportable_col',
+    'is_comment_col',
+    'comment_col',
+    'translations_start_col',
+    'exportable_rule',
+    'is_comment_rule',
+    'metadata_cols'])
+default_format_specs = FormatSpec(0, 1, 2, 3, 4, bool, bool, {})
+create_format_specs = lambda **kwargs: default_format_specs._replace(**kwargs)
 
 def _get_csv_rows(file_path):
-    import csv
     csv_file = open(file_path, 'rb')
-    reader = csv.reader(csv_file)
-    for row in reader:
-        yield [unicode(v, 'utf-8') for v in row]
+    reader = csv_unicode.UnicodeReader(csv_file)
+    return reader
 
 def _get_excel_rows(file_path, sheet_index=0):
     import xlrd
@@ -49,51 +44,106 @@ def _get_excel_rows(file_path, sheet_index=0):
         yield row
 
 
+def _check_duplicates(wordings, condition=lambda w: w.exportable and not w.is_comment,
+                      message='ERROR: Duplicate key entry: "'):
+    duplicate_keys = collections.defaultdict(lambda: [])
+
+    for index, wording in enumerate(wordings):
+        if condition(wording):
+            duplicate_keys[wording.key].append(index)
+
+    duplicate_keys = dict((k, v) for k, v in duplicate_keys.items() if len(v) > 1)
+
+    for key, value in duplicate_keys.items():
+        print(message + key + '" found at indices ' + ', '.join(str(v) for v in value))
+
+    return duplicate_keys
+
+def find_duplicate_wordings(wordings):
+    return _check_duplicates(wordings)
+
+def find_duplicate_comment_keys(wordings):
+    return _check_duplicates(wordings, lambda w: w.is_comment, 'WARN: Duplicate comment key: "')
+
+def fix_duplicates(wordings, merge_sections=True):
+    new_wordings = wordings
+
+    if find_duplicate_wordings(new_wordings):
+        new_wordings = unique_wordings_overwrite(new_wordings)
+
+    if merge_sections and find_duplicate_comment_keys(new_wordings):
+        new_wordings = group_wordings_by_comment_key(new_wordings)
+
+    return new_wordings
+
+def trim(wordings):
+    for w in wordings:
+        for lang, t in w.translations.items():
+            if hasattr(t, 'strip'):
+                w.translations[lang] = t.strip()
+
 def _read_rows(reader, specs=default_format_specs):
     languages = reader.next()[specs.translations_start_col:]
     wordings = list()
 
     for row_values in reader:
-        key = row_values[specs.key_col]
-        is_exportable = specs.exportable_rule(row_values[specs.exportable_col])
-        is_comment = specs.is_comment_rule(row_values[specs.is_comment_col])
-        comment = row_values[specs.comment_col]
-
         if row_values:
-            w = Wording(key, is_exportable, comment, is_comment,
-                        OrderedDict(zip(languages, [v for v in row_values[specs.translations_start_col:]])))
+            w = create_wording(
+                key=row_values[specs.key_col],
+                exportable=specs.exportable_rule(row_values[specs.exportable_col]),
+                comment=row_values[specs.comment_col],
+                is_comment=specs.is_comment_rule(row_values[specs.is_comment_col]),
+                metadata=OrderedDict(((k, row_values[v]) for k, v in specs.metadata_cols.items())),
+                translations=OrderedDict(zip(languages, [v for v in row_values[specs.translations_start_col:]]))
+            )
 
-            wordings.append(w)
+        wordings.append(w)
 
-    return languages, _get_unique_wordings(wordings)
+    return languages, wordings
 
-def _get_unique_wordings(wordings):
-    unique_wordings = OrderedDict()
-    duplicate_keys = collections.defaultdict(lambda: [])
+def group_wordings_by_comment_key(wordings):
+    grouped_wordings = OrderedDict()  # comment_key, [wording, ...]
+    comment_keys = OrderedDict()  # comment_key, comment_wording
+    current_comment_key = None
+
+    for wording in wordings:
+        if wording.is_comment:
+            current_comment_key = wording.key
+            grouped_wordings.setdefault(current_comment_key, [])
+            comment_keys[wording.key] = wording
+        else:
+            grouped_wordings.setdefault(current_comment_key, []).append(wording)
+
+    new_wordings = []
+    for k, v in grouped_wordings.items():
+        if k in comment_keys:
+            new_wordings.append(comment_keys.get(k))
+        for w in v:
+            new_wordings.append(w)
+
+    return new_wordings
+
+def unique_wordings_overwrite(wordings):
+    new_wordings = OrderedDict()
+    duplicate_other = collections.defaultdict(lambda: [])
 
     for index, wording in enumerate(wordings):
-        if wording.is_comment:
-            # Ignore duplicate keys for comments
-            new_key = wording.key+'.'+str(len(duplicate_keys[wording.key]))
-            unique_wordings[new_key] = wording
+        if wording.exportable and not wording.is_comment:
+            new_wordings[wording.key] = wording
         else:
-            unique_wordings[wording.key] = wording
+            # Ignore duplicate keys if not exportable
+            new_key = wording.key+'.'+str(len(duplicate_other[wording.key]))
+            new_wordings[new_key] = wording
+            duplicate_other[wording.key].append(index+2)
 
-        if wording.exportable or wording.is_comment:
-            duplicate_keys[wording.key].append(index+2)
-
-    for key, value in duplicate_keys.items():
-        if len(value) > 1:
-            print('WARN: duplicate key entry: "' + key + '" found at lines ' +
-                  ', '.join(str(v) for v in value))
-
-    return unique_wordings.values()
+    return new_wordings.values()
 
 
 def _object_hook(dct):
-    first_keys = ' '.join([k for k, v in dct][:2])
-    if first_keys == 'key exportable':
-        return Wording(*[v for k, v in dct])
+    if dct and dct[0] and dct[0][0] == 'key':
+        keys = [k for k, v in dct]
+        if keys[-1] == 'translations':
+            return create_wording(**dict((k, v) for k, v in dct if k in Wording._fields))
     return OrderedDict(dct)
 
 def _read_json(file__obj):
