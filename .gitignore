@@ -3,5 +3,8 @@
 /.idea/libraries
 .DS_Store
 /out
+/test-out
+/dist
+/venv
 *.pyc
 /captures
