@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+import json
 
 from xml.sax import saxutils
 import codecs
@@ -91,18 +92,18 @@ class AndroidResourceWriter(object):
         return 'values-{}'.format(lang)
 
     def write_header(self, lang):
-        self.out_file.write('<?xml version="1.0" encoding="UTF-8"?>\n<resources>\n')
+        self.out_file.write(u'<?xml version="1.0" encoding="UTF-8"?>\n<resources>\n')
 
     def write_comment(self, comment):
-        self.out_file.write('  <!-- {} -->\n'.format(comment))
+        self.out_file.write(u'  <!-- {} -->\n'.format(comment))
 
     def write_string(self, key, string):
-        self.out_file.write('  <string name="{}">'.format(key.replace(".", "_")))
+        self.out_file.write(u'  <string name="{}">'.format(key.replace(".", "_")))
         self.out_file.write(_escape_android_string(string))
-        self.out_file.write('</string>\n')
+        self.out_file.write(u'</string>\n')
 
     def write_footer(self):
-        self.out_file.write('</resources>')
+        self.out_file.write(u'</resources>')
 
 
 class IOSResourceWriter(object):
@@ -114,19 +115,18 @@ class IOSResourceWriter(object):
         return '{}.lproj'.format(lang)
 
     def write_header(self, lang):
-        self.out_file.write('//Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
+        self.out_file.write(u'//Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
 
     def write_comment(self, comment):
-        self.out_file.write('\n//{}\n'.format(comment))
+        self.out_file.write(u'\n//{}\n'.format(comment))
 
     def write_string(self, key, string):
-        self.out_file.write('"{}"="'.format(key))
+        self.out_file.write(u'"{}"="'.format(key))
         self.out_file.write(_escape_ios_string(string))
-        self.out_file.write('";\n')
+        self.out_file.write(u'";\n')
 
     def write_footer(self):
         pass
-
 
 def _export_lang_file(language, from_language, wordings, res_dir, res_filename, writer_type):
     lang_dirname = writer_type.get_lang_dirname(language).format(language)
@@ -140,21 +140,33 @@ def _export_lang_file(language, from_language, wordings, res_dir, res_filename, 
             if wording.is_comment:
                 writer.write_comment(wording.key)
             elif wording.exportable:
-                translation = wording.translations_dict.get(from_language)
+                translation = wording.translations.get(from_language)
                 if translation:
                     writer.write_string(wording.key, translation)
         writer.write_footer()
 
 
-def _export(languages, wordings, res_dir, res_filename, writer_type):
+def _export_languages(languages, wordings, res_dir, res_filename, writer_type):
     for lang in languages:
         _export_lang_file(lang, lang, wordings, res_dir, res_filename, writer_type)
 
 
-def android_export(languages, wordings, res_dir, res_filename):
-    _export(languages, wordings, res_dir, res_filename, AndroidResourceWriter)
+def write_android_strings(languages, wordings, res_dir, res_filename='strings.xml'):
+    _export_languages(languages, wordings, res_dir, res_filename, AndroidResourceWriter)
 
 
-def ios_export(languages, wordings, res_dir, res_filename):
-    _export(languages, wordings, res_dir, res_filename, IOSResourceWriter)
+def write_ios_strings(languages, wordings, res_dir, res_filename='i18n.strings'):
+    _export_languages(languages, wordings, res_dir, res_filename, IOSResourceWriter)
 
+
+def _write_json(languages, wordings, file_obj, indent=False):
+    json.dump(dict(
+        languages=languages,
+        wordings=[hasattr(w, '_asdict') and w._asdict() or w for w in wordings]), file_obj, indent=indent)
+
+def write_json(languages, wordings, file_or_path, indent=False):
+    if hasattr(file_or_path, 'write'):
+        _write_json(languages, wordings, file_or_path, indent)
+    else:
+        with open(file_or_path, 'w') as f:
+            _write_json(languages, wordings, f, indent)

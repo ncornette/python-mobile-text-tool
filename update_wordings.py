@@ -2,8 +2,7 @@
 # coding=utf-8
 
 import argparse
-from mobileStrings import readers
-from mobileStrings import exporters
+import mobileStrings
 
 def get_parsed_arguments():
     args_parser = argparse.ArgumentParser(description='Export wordings for Android & IOS.')
@@ -25,14 +24,13 @@ def get_parsed_arguments():
 
 
 def main(args):
-
-    languages, wordings = readers.read_file(args.input_file)
+    languages, wordings = mobileStrings.input.read_file(args.input_file)
 
     if args.android_res_dir:
-        exporters.android_export(languages, wordings, args.android_res_dir, args.android_resname)
+        mobileStrings.output.write_android_strings(languages, wordings, args.android_res_dir, args.android_resname)
 
     if args.ios_res_dir:
-        exporters.ios_export(languages, wordings, args.ios_res_dir, args.ios_resname)
+        mobileStrings.output.write_ios_strings(languages, wordings, args.ios_res_dir, args.ios_resname)
 
 if __name__ == '__main__':
     main(get_parsed_arguments())

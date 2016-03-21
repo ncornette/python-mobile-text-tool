@@ -1,23 +1,20 @@
 #!/usr/bin/env python
 # coding=utf-8
 from collections import namedtuple, OrderedDict
+import json
 import collections
 import os
 
 __author__ = 'nic'
 
-Wording = namedtuple("Wording", ['key',
-                                 'exportable',
-                                 'comment',
-                                 'is_comment',
-                                 'translations_dict'
-                                 ])
+Wording = namedtuple("Wording", 'key exportable comment is_comment translations')
 
 class FormatSpec(object):
 
     def __init__(self, key_col, exportable_col, comment_col, is_comment_col, translations_start_col,
                  exportable_rule=lambda value: bool(value),
-                 is_comment_rule=lambda value: bool(value)):
+                 is_comment_rule=lambda value: bool(value),
+                 generic_token='{}'):
         """
         :param key_col: int
         :param exportable_rule:
@@ -25,6 +22,7 @@ class FormatSpec(object):
         :param is_comment_rule:
         :param translations_start_col: int
         """
+        self.generic_token = generic_token
         self.key_col = key_col
         self.exportable_col = exportable_col
         self.is_comment_col = is_comment_col
@@ -35,39 +33,23 @@ class FormatSpec(object):
 
 default_format_specs = FormatSpec(*range(len(Wording._fields)))
 
+def _get_csv_rows(file_path):
+    import csv
+    csv_file = open(file_path, 'rb')
+    reader = csv.reader(csv_file)
+    for row in reader:
+        yield [unicode(v, 'utf-8') for v in row]
 
-class ExcelReader(object):
-    def __init__(self, file_path, sheet_index=0):
-        import xlrd
-        self.book = xlrd.open_workbook(file_path)
-        self.sheet = self.book.sheets()[sheet_index]
-        self.row_generator = (self.sheet.row_values(row) for row in range(self.sheet.nrows))
-
-    def next(self):
-        try:
-            return [hasattr(v, 'strip') and v.strip() or v for v in self.row_generator.next()]
-        except StopIteration, e:
-            self.book.release_resources()
-            raise e
-
-    def __iter__(self):
-        return self
+def _get_excel_rows(file_path, sheet_index=0):
+    import xlrd
+    book = xlrd.open_workbook(file_path)
+    sheet = book.sheets()[sheet_index]
+    for row_index in range(sheet.nrows):
+        row = sheet.row_values(row_index)
+        yield row
 
 
-class CsvReader(object):
-    def __init__(self, file_path):
-        import csv
-        self.csv_file = open(file_path, 'rb')
-        self.reader = csv.reader(self.csv_file)
-
-    def next(self):
-        return [unicode(v.strip(), 'utf-8') for v in self.reader.next()]
-
-    def __iter__(self):
-        return self
-
-
-def _read(reader, specs=default_format_specs):
+def _read_rows(reader, specs=default_format_specs):
     languages = reader.next()[specs.translations_start_col:]
     wordings = list()
 
@@ -92,7 +74,7 @@ def _get_unique_wordings(wordings):
     for index, wording in enumerate(wordings):
         if wording.is_comment:
             # Ignore duplicate keys for comments
-            new_key = '{}.{}'.format(wording.key, len(duplicate_keys[wording.key]))
+            new_key = wording.key+'.'+str(len(duplicate_keys[wording.key]))
             unique_wordings[new_key] = wording
         else:
             unique_wordings[wording.key] = wording
@@ -102,18 +84,46 @@ def _get_unique_wordings(wordings):
 
     for key, value in duplicate_keys.items():
         if len(value) > 1:
-            print('WARN: duplicate key entry: "{}" found at lines {}'.format(key, ', '.join(str(v) for v in value)))
+            print('WARN: duplicate key entry: "' + key + '" found at lines ' +
+                  ', '.join(str(v) for v in value))
 
     return unique_wordings.values()
 
-def read_file(file_path, format_specs=default_format_specs):
-    basename, ext = os.path.splitext(file_path.lower())
 
-    if ext == '.csv':
-        reader = CsvReader(file_path)
+def _object_hook(dct):
+    first_keys = ' '.join([k for k, v in dct][:2])
+    if first_keys == 'key exportable':
+        return Wording(*[v for k, v in dct])
+    return OrderedDict(dct)
+
+def _read_json(file__obj):
+    dct = json.load(file__obj, 'utf-8', object_pairs_hook=_object_hook)
+    return dct['languages'], dct['wordings']
+
+def read_json(file_or_path):
+    if hasattr(file_or_path, 'write'):
+        return _read_json(file_or_path)
+    else:
+        with open(file_or_path, 'r') as f:
+            return _read_json(f)
+
+def read_excel(file_path, rows_format_specs=default_format_specs):
+    return _read_rows(_get_excel_rows(file_path), rows_format_specs)
+
+
+def read_csv(file_path, rows_format_specs=default_format_specs):
+    return _read_rows(_get_csv_rows(file_path), rows_format_specs)
+
+
+def read_file(file_path, rows_format_specs=default_format_specs):
+
+    _, ext = os.path.splitext(file_path.lower())
+
+    if ext == '.json':
+        return read_json(file_path)
+    elif ext == '.csv':
+        return read_csv(file_path, rows_format_specs)
     elif ext.startswith('.xls'):
-        reader = ExcelReader(file_path)
+        return read_excel(file_path, rows_format_specs)
     else:
         raise AttributeError("Unknown file type: " + ext)
-
-    return _read(reader, format_specs)
