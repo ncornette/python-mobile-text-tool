@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
 from collections import OrderedDict
+import shutil
+import re
 from mobileStrings import output
 from mobileStrings import input
+import os
 
 __author__ = 'nic'
 
@@ -14,25 +17,27 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual("blablabla", output._escape_android_string("blablabla"))
         self.assertEqual("bla %s blabla", output._escape_android_string("bla {} blabla"))
         self.assertEqual("bla %s bla %s bla", output._escape_android_string("bla {} bla {} bla"))
-        self.assertEqual("bla %s blabla", output._escape_android_string("bla %@ blabla"))
-        self.assertEqual("bla %s bla %s bla", output._escape_android_string("bla %@ bla %@ bla"))
         self.assertEqual("bla %1$s bla %2$s bla", output._escape_android_string("bla {1} bla {2} bla"))
         self.assertEqual("bla %2$s bla %1$s bla", output._escape_android_string("bla {2} bla {1} bla"))
-
-    def test_escape_android(self):
-        test_string = u'< > & % %% \' " ’ \n \t \r \f'
-        self.assertEqual(u'&lt; &gt; &amp; %% %% \\\' \\" \\’ \\n \\t \\r \\f', output._escape_android_string(test_string))
-        self.assertEqual(u'< > & % %% \' \\" ’ \\n \\t \\r \\f', output._escape_ios_string(test_string))
-
-        self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_android_string("%10 bla 10% bla 10%"))
-        self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_android_string("%%10 bla 10%% bla 10%%"))
 
     def test_replace_tokens_ios(self):
         self.assertEqual("blablabla", output._escape_ios_string("blablabla"))
         self.assertEqual("bla %@ blabla", output._escape_ios_string("bla {} blabla"))
         self.assertEqual("bla %@ bla %@ bla", output._escape_ios_string("bla {} bla {} bla"))
-        self.assertEqual("bla %@ blabla", output._escape_ios_string("bla %@ blabla"))
-        self.assertEqual("bla %@ bla %@ bla", output._escape_ios_string("bla %@ bla %@ bla"))
+        self.assertEqual("bla %1$@ bla %2$@ bla", output._escape_ios_string("bla {1} bla {2} bla"))
+        self.assertEqual("bla %2$@ bla %1$@ bla", output._escape_ios_string("bla {2} bla {1} bla"))
+
+    def test_escape_android(self):
+        test_string = u'< > & % %% \' " ’ \n \t \r \f'
+        self.assertEqual(u'&lt; &gt; &amp; %% %% \\\' \\" \\’ \\n \\t \\r \\f', output._escape_android_string(test_string))
+        self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_android_string("%10 bla 10% bla 10%"))
+        self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_android_string("%%10 bla 10%% bla 10%%"))
+
+    def test_escape_ios(self):
+        test_string = u'< > & % %% \' " ’ \n \t \r \f'
+        self.assertEqual(u'< > & % %% \' \\" ’ \\n \\t \\r \\f', output._escape_ios_string(test_string))
+        self.assertEqual("%10 bla 10% bla 10%", output._escape_ios_string("%10 bla 10% bla 10%"))
+        self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_ios_string("%%10 bla 10%% bla 10%%"))
 
     def test_read(self):
         languages, wordings_from_xlsx = input.read_file('test_translations.xlsx')
@@ -70,12 +75,33 @@ class MyTestCase(unittest.TestCase):
 
     def test_export_import(self):
 
+        android_target = 'test-out/android'
+        ios_target = 'test-out/ios'
+
+        shutil.rmtree(android_target, True)
+        shutil.rmtree(ios_target, True)
+
         # EXPORT
 
         languages, wordings_from_xlsx = input.read_file('test_translations.xlsx')
 
-        output.write_android_strings(languages, wordings_from_xlsx, 'test-out/android')
-        output.write_ios_strings(languages, wordings_from_xlsx, 'test-out/ios')
+        output.write_android_strings(languages, wordings_from_xlsx, android_target)
+        pt_br_android_file_path = os.path.join(android_target, 'values-pt-rBR', 'strings.xml')
+        self.assertTrue(os.path.exists(pt_br_android_file_path))
+        with open(pt_br_android_file_path) as f:
+            content = f.read()
+            self.assertTrue(re.search('\n'
+                                      '  <!-- comment.section - This is a section -->\n'
+                                      '  <string name="menu_contact">Contato</string>', content))
+
+        pt_br_ios_file_path = os.path.join(ios_target, 'pt_BR.lproj', 'i18n.strings')
+        output.write_ios_strings(languages, wordings_from_xlsx, ios_target)
+        self.assertTrue(os.path.exists(pt_br_ios_file_path))
+        with open(pt_br_ios_file_path) as f:
+            content = f.read()
+            self.assertTrue(re.search('\n'
+                                      '//comment.section - This is a section\n'
+                                      '"menu.contact"="Contato";\n', content))
 
         output.write_csv(languages, wordings_from_xlsx, 'test-out/wordings.csv')
         output.write_json(languages, wordings_from_xlsx, 'test-out/wordings.json')
@@ -131,11 +157,10 @@ class MyTestCase(unittest.TestCase):
     def test_trim(self):
         w = input.create_wording
         wordings = [
-            w(key='0', translations=OrderedDict(en='hello',   fr='bonjour')),
-            w(key='1', translations=OrderedDict(en='hello\n', fr='bonjour\n')),
-            w(key='2', translations=OrderedDict(en='hello ',  fr='bonjour ')),
-            w(key='3', translations=OrderedDict(en=' hello',  fr=' bonjour')),
-            w(key='4', translations=OrderedDict(en='\nhello', fr='\nbonjour'))
+            w(key='0', translations=OrderedDict(en='hello',   fr='bonjour ')),
+            w(key='1', translations=OrderedDict(en='hello\n', fr='bonjour\n\n\n')),
+            w(key='2', translations=OrderedDict(en='hello',  fr=' bonjour')),
+            w(key='3', translations=OrderedDict(en='\nhello', fr='\n\n\nbonjour'))
         ]
 
         input.trim(wordings)

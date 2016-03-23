@@ -15,15 +15,16 @@ enum_token = re.compile('{(\\d*)}')
 odd = lambda n: n % 2 == 1
 
 android_token = lambda n: '%' + (n and n + '$') + 's'
+ios_token = lambda n: '%' + (n and n + '$') + '@'
 
-def replace_tokens_for_android(s):
+def replace_tokens(s, make_token=None):
+    if not make_token:
+        return s
     split = enum_token.split(s)
-    return ''.join(android_token(v) if odd(i) else v for i, v in enumerate(split))
-
-def replace_tokens_for_ios(s):
-    return enum_token.sub('%@', s)
+    return ''.join(make_token(v) if odd(i) else v for i, v in enumerate(split))
 
 single_percent = re.compile('(^|[^%])%([^%]|$)')
+double_percent = lambda s: single_percent.sub('\\1%%\\2', s)
 
 def _escape_android_string(s):
 
@@ -50,9 +51,8 @@ def _escape_android_string(s):
 
     string = escape_chars(s)
     string = saxutils.escape(string)
-    string = string.replace('%@', '{}')
-    string = single_percent.sub('\\1%%\\2', string)
-    string = replace_tokens_for_android(string)
+    string = double_percent(string)
+    string = replace_tokens(string, android_token)
     return string
 
 
@@ -80,8 +80,8 @@ def _escape_ios_string(s):
         return new_ios_string
 
     string = escape_chars(s)
-    # string = string.replace('%', '%%')
-    string = replace_tokens_for_ios(string)
+    # string = double_percent(string)
+    string = replace_tokens(string, ios_token)
     return string
 
 class AndroidResourceWriter(object):
@@ -205,8 +205,8 @@ def _write_csv(languages, wordings, file_obj, format_specs):
     for wording in wordings:
         row = ['' for _ in range(format_specs.translations_start_col + len(languages))]
         row[format_specs.key_col] = wording.key
-        row[format_specs.exportable_col] = wording.exportable and 'True' or ''
-        row[format_specs.is_comment_col] = wording.is_comment and 'True' or ''
+        row[format_specs.exportable_col] = wording.exportable and 'Yes' or ''
+        row[format_specs.is_comment_col] = wording.is_comment and 'Yes' or ''
         row[format_specs.comment_col] = wording.comment
 
         for k, v in format_specs.metadata_cols.items():

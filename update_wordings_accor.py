@@ -19,12 +19,12 @@ def main(args):
         translations_start_col=10,
         exportable_rule=lambda v: v == 'mobile',
         is_comment_rule=lambda v: v == 'SCREEN',
-        metadata_cols=dict(constraint=7, max_chars=5)
+        metadata_cols=dict(to_be_translated=2, constraint=7, max_chars=5)
     )
 
     languages, wordings = mobileStrings.input.read_file(args.input_file, in_format_specs)
 
-    wordings = mobileStrings.input.fix_duplicates(wordings, False)
+    wordings = mobileStrings.input.fix_duplicates(wordings, merge_sections=False)
 
     mobileStrings.input.trim(wordings)
 
@@ -42,8 +42,8 @@ def main(args):
         exportable_col=1,
         is_comment_col=2,
         comment_col=3,
-        metadata_cols=dict(constraint=4, max_chars=5),
-        translations_start_col=8
+        metadata_cols=dict(to_be_translated=4, constraint=5, max_chars=6),
+        translations_start_col=10
     )
 
     write_csv(languages, wordings, os.path.join('out', 'wordings.csv'), out_format_specs)
