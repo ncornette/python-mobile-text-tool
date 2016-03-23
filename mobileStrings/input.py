@@ -89,7 +89,7 @@ def _read_rows(reader, specs=default_format_specs):
     for row_values in reader:
         if row_values:
             w = create_wording(
-                key=row_values[specs.key_col],
+                key=row_values[specs.key_col].strip(),
                 exportable=specs.exportable_rule(row_values[specs.exportable_col]),
                 comment=row_values[specs.comment_col],
                 is_comment=specs.is_comment_rule(row_values[specs.is_comment_col]),

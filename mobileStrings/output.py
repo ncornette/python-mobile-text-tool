@@ -7,22 +7,23 @@ import codecs
 from mobileStrings.input import default_format_specs, Wording
 import os
 from os import makedirs
+import re
 
 __author__ = 'nic'
 
-def replace_enum_tokens(s, old_token, get_new_token):
-    """
-    :type s: str
-    :type old_token: str
-    :type get_new_token: function(token_index)
-    """
-    split = s.split(old_token)
-    if len(split) > 1:
-        return len(split) - 1, ''.join((v + ((i < len(split)-1) and get_new_token(i) or '')
-                                        for i, v in enumerate(split)))
-    else:
-        return 0, s
+enum_token = re.compile('{(\\d*)}')
+odd = lambda n: n % 2 == 1
 
+android_token = lambda n: '%' + (n and n + '$') + 's'
+
+def replace_tokens_for_android(s):
+    split = enum_token.split(s)
+    return ''.join(android_token(v) if odd(i) else v for i, v in enumerate(split))
+
+def replace_tokens_for_ios(s):
+    return enum_token.sub('%@', s)
+
+single_percent = re.compile('(^|[^%])%([^%]|$)')
 
 def _escape_android_string(s):
 
@@ -50,8 +51,8 @@ def _escape_android_string(s):
     string = escape_chars(s)
     string = saxutils.escape(string)
     string = string.replace('%@', '{}')
-    string = string.replace('%', '%%')
-    replace_count1, string = replace_enum_tokens(string, '{}', lambda n: '%{}$s'.format(n + 1))
+    string = single_percent.sub('\\1%%\\2', string)
+    string = replace_tokens_for_android(string)
     return string
 
 
@@ -80,7 +81,7 @@ def _escape_ios_string(s):
 
     string = escape_chars(s)
     # string = string.replace('%', '%%')
-    replace_count, string = replace_enum_tokens(string, '{}', lambda n: '%@')
+    string = replace_tokens_for_ios(string)
     return string
 
 class AndroidResourceWriter(object):
@@ -89,7 +90,7 @@ class AndroidResourceWriter(object):
 
     @staticmethod
     def get_lang_dirname(lang):
-        return 'values' + (lang and '-' + lang)
+        return 'values' + (lang and '-' + '-r'.join(lang.split('_')))
 
     def write_header(self, lang):
         self.out_file.write(u'<?xml version="1.0" encoding="UTF-8"?>\n<resources>\n')
@@ -173,7 +174,7 @@ def write_json(languages, wordings, file_or_path, indent=2):
     if hasattr(file_or_path, 'write'):
         _write_json(languages, wordings, file_or_path, indent)
     else:
-        with open(file_or_path, 'w') as f:
+        with codecs.open(file_or_path, 'w') as f:
             _write_json(languages, wordings, f, indent)
 
 
@@ -204,9 +205,9 @@ def _write_csv(languages, wordings, file_obj, format_specs):
     for wording in wordings:
         row = ['' for _ in range(format_specs.translations_start_col + len(languages))]
         row[format_specs.key_col] = wording.key
-        row[format_specs.exportable_col] = str(wording.exportable)
+        row[format_specs.exportable_col] = wording.exportable and 'True' or ''
+        row[format_specs.is_comment_col] = wording.is_comment and 'True' or ''
         row[format_specs.comment_col] = wording.comment
-        row[format_specs.is_comment_col] = str(wording.is_comment)
 
         for k, v in format_specs.metadata_cols.items():
             row[v] = str(wording.metadata[k])

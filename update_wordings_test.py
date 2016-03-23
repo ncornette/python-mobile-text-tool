@@ -10,12 +10,22 @@ import unittest
 
 class MyTestCase(unittest.TestCase):
 
-    def test_replace_tokens_android(self):
+    def test_tokens_android_generic(self):
         self.assertEqual("blablabla", output._escape_android_string("blablabla"))
-        self.assertEqual("bla %1$s blabla", output._escape_android_string("bla {} blabla"))
-        self.assertEqual("bla %1$s bla %2$s bla", output._escape_android_string("bla {} bla {} bla"))
-        self.assertEqual("bla %1$s blabla", output._escape_android_string("bla %@ blabla"))
-        self.assertEqual("bla %1$s bla %2$s bla", output._escape_android_string("bla %@ bla %@ bla"))
+        self.assertEqual("bla %s blabla", output._escape_android_string("bla {} blabla"))
+        self.assertEqual("bla %s bla %s bla", output._escape_android_string("bla {} bla {} bla"))
+        self.assertEqual("bla %s blabla", output._escape_android_string("bla %@ blabla"))
+        self.assertEqual("bla %s bla %s bla", output._escape_android_string("bla %@ bla %@ bla"))
+        self.assertEqual("bla %1$s bla %2$s bla", output._escape_android_string("bla {1} bla {2} bla"))
+        self.assertEqual("bla %2$s bla %1$s bla", output._escape_android_string("bla {2} bla {1} bla"))
+
+    def test_escape_android(self):
+        test_string = u'< > & % %% \' " ’ \n \t \r \f'
+        self.assertEqual(u'&lt; &gt; &amp; %% %% \\\' \\" \\’ \\n \\t \\r \\f', output._escape_android_string(test_string))
+        self.assertEqual(u'< > & % %% \' \\" ’ \\n \\t \\r \\f', output._escape_ios_string(test_string))
+
+        self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_android_string("%10 bla 10% bla 10%"))
+        self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_android_string("%%10 bla 10%% bla 10%%"))
 
     def test_replace_tokens_ios(self):
         self.assertEqual("blablabla", output._escape_ios_string("blablabla"))
@@ -24,86 +34,99 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual("bla %@ blabla", output._escape_ios_string("bla %@ blabla"))
         self.assertEqual("bla %@ bla %@ bla", output._escape_ios_string("bla %@ bla %@ bla"))
 
-    def test_escape_android(self):
-        test_string = u'< > & % \' " ’ \n \t \r \f'
-        self.assertEqual(u'&lt; &gt; &amp; %% \\\' \\" \\’ \\n \\t \\r \\f', output._escape_android_string(test_string))
-        self.assertEqual(u'< > & % \' \\" ’ \\n \\t \\r \\f', output._escape_ios_string(test_string))
+    def test_read(self):
+        languages, wordings_from_xlsx = input.read_file('test_translations.xlsx')
+        input.trim(wordings_from_xlsx)
+        # print 'csv\n'+'\n'.join(repr(w) for w in wordings_from_xlsx)
 
-    def test_import(self):
-        languages, wordings_from_csv = input.read_file('test_translations.csv')
-        input.trim(wordings_from_csv)
+        self.assertEqual(wordings_from_xlsx[1].key, u'menu.welcome')
+        self.assertTrue(wordings_from_xlsx[1].exportable)
+        self.assertFalse(wordings_from_xlsx[1].is_comment)
+        self.assertEqual(wordings_from_xlsx[1].translations['fr'], u'Bienvenue !')
 
-        # print 'csv\n'+'\n'.join(repr(w) for w in wordings_from_csv)
+        self.assertEqual(wordings_from_xlsx[2].key, u'menu.home')
+        self.assertTrue(wordings_from_xlsx[2].exportable)
+        self.assertFalse(wordings_from_xlsx[2].is_comment)
+        self.assertEqual(wordings_from_xlsx[2].translations['de'], u'Start')
 
-        self.assertEqual(wordings_from_csv[1].key, u'menu.welcome')
-        self.assertEqual(wordings_from_csv[1].translations['fr'], u'Bienvenue !')
+        self.assertEqual(wordings_from_xlsx[3].key, u'menu.news')
+        self.assertTrue(wordings_from_xlsx[3].exportable)
+        self.assertFalse(wordings_from_xlsx[3].is_comment)
+        self.assertEqual(wordings_from_xlsx[3].translations['pl'], u'Nowo\u015bci')
 
-        self.assertEqual(wordings_from_csv[2].key, u'menu.home')
-        self.assertEqual(wordings_from_csv[2].translations['de'], u'Start')
+        self.assertEqual(wordings_from_xlsx[4].key, u'comment.section')
+        self.assertTrue(wordings_from_xlsx[4].exportable)
+        self.assertTrue(wordings_from_xlsx[4].is_comment)
 
-        self.assertEqual(wordings_from_csv[3].key, u'menu.news')
-        self.assertEqual(wordings_from_csv[3].translations['pl'], u'Nowo\u015bci')
-
-        self.assertEqual(wordings_from_csv[5].key, u'menu.contact')
-        self.assertEqual(wordings_from_csv[5].translations['ru'],
+        self.assertEqual(wordings_from_xlsx[5].key, u'menu.contact')
+        self.assertTrue(wordings_from_xlsx[5].exportable)
+        self.assertFalse(wordings_from_xlsx[5].is_comment)
+        self.assertEqual(wordings_from_xlsx[5].translations['ru'],
                          u'\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u044b')
 
-        languages, wordings_from_xls = input.read_file('test_translations.xlsx')
-        input.trim(wordings_from_xls)
+        self.assertEqual(wordings_from_xlsx[7].key, u'menu.share.not.exported')
+        self.assertFalse(wordings_from_xlsx[7].exportable)
+        self.assertFalse(wordings_from_xlsx[7].is_comment)
 
-        # print 'xls\n'+'\n'.join(repr(w) for w in wordings_from_xls)
+    def test_export_import(self):
 
-        languages, wordings_from_json = input.read_file('test_translations.json')
+        # EXPORT
+
+        languages, wordings_from_xlsx = input.read_file('test_translations.xlsx')
+
+        output.write_android_strings(languages, wordings_from_xlsx, 'test-out/android')
+        output.write_ios_strings(languages, wordings_from_xlsx, 'test-out/ios')
+
+        output.write_csv(languages, wordings_from_xlsx, 'test-out/wordings.csv')
+        output.write_json(languages, wordings_from_xlsx, 'test-out/wordings.json')
+
+        # READ AND COMPARE
+
+        languages, wordings_from_json = input.read_file('test-out/wordings.json')
         input.trim(wordings_from_json)
+        # print 'xls\n'+'\n'.join(repr(w) for w in wordings_from_json)
 
-        # print 'json\n'+'\n'.join(repr(w) for w in wordings_from_json)
+        languages, wordings_from_csv = input.read_file('test-out/wordings.csv')
+        input.trim(wordings_from_csv)
+        # print 'json\n'+'\n'.join(repr(w) for w in wordings_from_csv)
 
-        self.assertListEqual(wordings_from_csv, wordings_from_json)
-        self.assertListEqual(wordings_from_csv, wordings_from_xls)
-
-    def test_export(self):
-        languages, wordings = input.read_file('test_translations.json')
-
-        output.write_android_strings(languages, wordings, 'test-out')
-        output.write_ios_strings(languages, wordings, 'test-out')
-
-        output.write_csv(languages, wordings, 'test-out/wordings.csv')
-        output.write_json(languages, wordings, 'test-out/out.json')
+        self.assertListEqual(wordings_from_xlsx, wordings_from_csv)
+        self.assertListEqual(wordings_from_xlsx, wordings_from_json)
 
     def test_unique_keys(self):
         w = input.create_wording
         wordings = [
-            w(key='AAA', is_comment=True), w(key='aaa'),
-            w(key='BBB', is_comment=True), w(key='bbb'), w(key='ccc'), w(key='aaa'),
-            w(key='AAA', is_comment=True), w(key='ddd'),
+            w(key='SECTION.A', is_comment=True), w(key='a.0'),
+            w(key='SECTION.B', is_comment=True), w(key='b.0'), w(key='b.1'), w(key='a.0'),
+            w(key='SECTION.A', is_comment=True), w(key='a.2'),
             w(key='empty.line', exportable=False),
-            w(key='eee'),
+            w(key='x.0'),
             w(key='empty.line', exportable=False),
-            w(key='fff'),
+            w(key='x.1'),
         ]
 
         duplicates = input.find_duplicate_wordings(wordings)
-        self.assertEqual({'aaa': [1, 5]}, duplicates)
+        self.assertEqual({'a.0': [1, 5]}, duplicates)
 
         grouped_wordings = input.unique_wordings_overwrite(wordings)
-        self.assertEqual('AAA aaa BBB bbb ccc AAA ddd empty.line eee empty.line fff',
+        self.assertEqual('SECTION.A a.0 SECTION.B b.0 b.1 SECTION.A a.2 empty.line x.0 empty.line x.1',
                          ' '.join(w.key for w in grouped_wordings))
 
     def test_unique_sections(self):
         w = input.create_wording
         wordings = [
             w(key='___'),
-            w(key='AAA', is_comment=True), w(key='0'),
-            w(key='BBB', is_comment=True), w(key='1'), w(key='2'),
-            w(key='CCC', is_comment=True),
-            w(key='AAA', is_comment=True), w(key='3'),
+            w(key='SECTION.A', is_comment=True), w(key='a.0'),
+            w(key='SECTION.B', is_comment=True), w(key='b.0'), w(key='b.1'),
+            w(key='SECTION.C', is_comment=True),
+            w(key='SECTION.A', is_comment=True), w(key='a1'),
         ]
 
         duplicates = input.find_duplicate_comment_keys(wordings)
-        self.assertEqual({'AAA': [1, 7]}, duplicates)
+        self.assertEqual({'SECTION.A': [1, 7]}, duplicates)
 
         grouped_wordings = input.group_wordings_by_comment_key(wordings)
-        self.assertEqual('___ AAA 0 3 BBB 1 2 CCC', ' '.join(w.key for w in grouped_wordings))
+        self.assertEqual('___ SECTION.A a.0 a1 SECTION.B b.0 b.1 SECTION.C', ' '.join(w.key for w in grouped_wordings))
 
     def test_trim(self):
         w = input.create_wording

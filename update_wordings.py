@@ -7,10 +7,10 @@ import mobileStrings
 def get_parsed_arguments():
     args_parser = argparse.ArgumentParser(description='Export wordings for Android & IOS.')
     args_parser.add_argument('input_file',
-                             help=".csv, .xls, .xlsx formats are supported.")
-    args_parser.add_argument('--android_res_dir', '-a', default=None,
+                             help=".csv, .xls, .xlsx, .json formats are supported.")
+    args_parser.add_argument('-a', '--android_res_dir', default=None,
                              help="resource directory for android strings")
-    args_parser.add_argument('--ios_res_dir', '-i', default=None,
+    args_parser.add_argument('-i', '--ios_res_dir', default=None,
                              help="resource directory for android strings")
     args_parser.add_argument('--android-resname', default="strings.xml",
                              help="filename for android resource")

@@ -11,8 +11,6 @@ from mobileStrings.output import IOSResourceWriter, write_csv, write_json, _expo
 
 def main(args):
 
-    print args
-
     in_format_specs = create_format_specs(
         key_col=1,
         exportable_col=9,
