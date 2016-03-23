@@ -117,6 +117,8 @@ For mobile applications :
     mobileStrings.output.write_android_strings(languages, wordings, '~/dev/myAndProject/res')
     mobileStrings.output.write_ios_strings(languages, wordings, '~/dev/myIOSProject/res')
 
+Csv example :
+
 .. code:: python
 
     import cStringIO
