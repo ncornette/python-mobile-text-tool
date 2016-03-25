@@ -73,6 +73,11 @@ class MyTestCase(unittest.TestCase):
         self.assertFalse(wordings_from_xlsx[7].exportable)
         self.assertFalse(wordings_from_xlsx[7].is_comment)
 
+        self.assertEqual(wordings_from_xlsx[8].key, u'menu.share')
+        self.assertTrue(wordings_from_xlsx[8].exportable)
+        self.assertFalse(wordings_from_xlsx[8].is_comment)
+        self.assertEqual(wordings_from_xlsx[8].translations['sv'], u'Dela')
+
     def test_export_import(self):
 
         android_target = 'test-out/android'

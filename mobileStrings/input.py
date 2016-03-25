@@ -35,10 +35,37 @@ def _get_csv_rows(file_path):
     reader = csv_unicode.UnicodeReader(csv_file)
     return reader
 
-def _get_excel_rows(file_path, sheet_index=0):
+def _get_excel_rows(file_path, translations_start_col, sheet=0):
+    return _get_excel_openpyxl_rows(file_path, sheet, translations_start_col)
+
+def _get_excel_openpyxl_rows(file_path, sheet=0, translations_start_col=-1):
+    import openpyxl
+
+    wb = openpyxl.load_workbook(file_path, read_only=False, use_iterators=False)
+
+    if hasattr(sheet, 'startswith'):
+        work_sheet = wb.get_sheet_by_name(sheet)
+    else:
+        work_sheet = wb.worksheets[sheet] if sheet else wb.worksheets[0]
+
+    iter_rows = work_sheet.iter_rows()
+
+    header_row = iter_rows.next()
+
+    if translations_start_col >= 0:
+        header_row = list(header_row[:translations_start_col]) + \
+                     list([v for v in header_row[translations_start_col:] if v.value])
+
+    yield [v.value or '' for v in header_row]
+
+    for row in iter_rows:
+        yield [v.value or '' for v in row]
+
+def _get_excel_xlrd_rows(file_path, sheet=0, translations_start_col=-1):
     import xlrd
+
     book = xlrd.open_workbook(file_path)
-    sheet = book.sheets()[sheet_index]
+    sheet = book.sheets()[sheet]
     for row_index in range(sheet.nrows):
         row = sheet.row_values(row_index)
         yield row
@@ -157,8 +184,8 @@ def read_json(file_or_path):
         with open(file_or_path, 'r') as f:
             return _read_json(f)
 
-def read_excel(file_path, rows_format_specs=default_format_specs):
-    return _read_rows(_get_excel_rows(file_path), rows_format_specs)
+def read_excel(file_path, rows_format_specs=default_format_specs, sheet=0):
+    return _read_rows(_get_excel_rows(file_path, rows_format_specs.translations_start_col, sheet), rows_format_specs)
 
 
 def read_csv(file_path, rows_format_specs=default_format_specs):

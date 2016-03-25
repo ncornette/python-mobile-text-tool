@@ -3,11 +3,16 @@
 
 import argparse
 import mobileStrings
+import os
+
 
 def get_parsed_arguments():
-    args_parser = argparse.ArgumentParser(description='Export wordings for Android & IOS.')
+    args_parser = argparse.ArgumentParser(description='Export wordings for Android & IOS.',
+                                          formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     args_parser.add_argument('input_file',
                              help=".csv, .xls, .xlsx, .json formats are supported.")
+    args_parser.add_argument('-o', '--out-file', default=None, nargs='*',
+                             help=".json or .csv output file path")
     args_parser.add_argument('-a', '--android_res_dir', default=None,
                              help="resource directory for android strings")
     args_parser.add_argument('-i', '--ios_res_dir', default=None,
@@ -17,14 +22,21 @@ def get_parsed_arguments():
     args_parser.add_argument('--ios-resname', default="i18n.strings",
                              help="filename for ios resource")
     parsed_args = args_parser.parse_args()
-    if not (parsed_args.ios_res_dir or parsed_args.android_res_dir):
-        args_parser.error('No output dir specified, please add -a or -i')
+    if not (parsed_args.ios_res_dir or parsed_args.android_res_dir or parsed_args.single_out_file):
+        args_parser.error('No output dir specified, please add any of -a, -i, -o')
 
     return parsed_args
 
 
 def main(args):
     languages, wordings = mobileStrings.input.read_file(args.input_file)
+
+    for f in args.out_file:
+        _, ext = os.path.splitext(f)
+        if ext.lower() == '.json':
+            mobileStrings.output.write_json(languages, wordings, f)
+        elif ext.lower() == '.csv':
+            mobileStrings.output.write_csv(languages, wordings, f)
 
     if args.android_res_dir:
         mobileStrings.output.write_android_strings(languages, wordings, args.android_res_dir, args.android_resname)
