@@ -224,3 +224,11 @@ def write_csv(languages, wordings, file_or_path, format_specs=default_format_spe
     else:
         with open(file_or_path, 'wb') as f:
             _write_csv(languages, wordings, f, format_specs)
+
+
+def write_file(languages, wordings, file_path):
+    _, ext = os.path.splitext(file_path)
+    if ext.lower() == '.json':
+        write_json(languages, wordings, file_path)
+    elif ext.lower() == '.csv':
+        write_csv(languages, wordings, file_path)

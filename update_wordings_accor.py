@@ -36,6 +36,9 @@ def main(args):
     # File Export
 
     for f in args.out_file:
+        file_path, _ = os.path.split(f)
+        not os.path.exists(file_path) and os.makedirs(file_path)
+
         _, ext = os.path.splitext(f)
         if ext.lower() == '.csv':
             mobileStrings.output.write_csv(languages, wordings, f, create_format_specs(
