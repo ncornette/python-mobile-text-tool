@@ -4,31 +4,34 @@ from collections import namedtuple, OrderedDict
 import json
 import collections
 from mobileStrings import csv_unicode
+from mobileStrings.collection_utils import namedtuple_with_defaults
 import os
 
 __author__ = 'nic'
 
-Wording = namedtuple("Wording", [
-    'key',
-    'exportable',
-    'is_comment',
-    'comment',
-    'metadata',
-    'translations'])
-empty_wording = Wording('', True, '', False, OrderedDict(), OrderedDict())
-create_wording = lambda **kwargs: empty_wording._replace(**kwargs)
+Wording = namedtuple_with_defaults("Wording", """\
+    key,
+    exportable,
+    is_comment,
+    comment,
+    metadata,
+    translations""", default_values=dict(key='', exportable=True, is_comment=False, comment='',
+                                         metadata=OrderedDict(), translations=OrderedDict()))
 
-FormatSpec = namedtuple('FormatSpec', [
-    'key_col',
-    'exportable_col',
-    'is_comment_col',
-    'comment_col',
-    'translations_start_col',
-    'exportable_rule',
-    'is_comment_rule',
-    'metadata_cols'])
-default_format_specs = FormatSpec(0, 1, 2, 3, 4, bool, bool, {})
-create_format_specs = lambda **kwargs: default_format_specs._replace(**kwargs)
+FormatSpec = namedtuple_with_defaults('FormatSpec', """\
+    key_col,
+    exportable_col,
+    is_comment_col,
+    comment_col,
+    translations_start_col,
+    exportable_rule,
+    is_comment_rule,
+    metadata_cols""", default_values=dict(key_col=0, exportable_col=1, is_comment_col=2,
+                                          comment_col=3, translations_start_col=4,
+                                          exportable_rule=bool, is_comment_rule=bool,
+                                          metadata_cols={}))
+
+default_format_specs = FormatSpec()
 
 def _get_csv_rows(file_path):
     csv_file = open(file_path, 'rb')
@@ -59,7 +62,7 @@ def _get_excel_openpyxl_rows(file_path, sheet=0, translations_start_col=-1):
     yield [v.value or '' for v in header_row]
 
     for row in iter_rows:
-        yield [v.value or '' for v in row]
+        yield [v.value and v.value.replace(u'\u2028', '\n') or '' for v in row]
 
 def _get_excel_xlrd_rows(file_path, sheet=0, translations_start_col=-1):
     import xlrd
@@ -103,30 +106,33 @@ def fix_duplicates(wordings, merge_sections=True):
 
     return new_wordings
 
-def trim(wordings):
+def trimmed(wordings):
     for w in wordings:
         for lang, t in w.translations.items():
             if hasattr(t, 'strip'):
                 w.translations[lang] = t.strip()
+        yield w
 
 def _read_rows(reader, specs=default_format_specs):
     languages = reader.next()[specs.translations_start_col:]
-    wordings = list()
+    wordings = _wordings_generator(languages, reader, specs)
+    return languages, wordings
 
+
+def _wordings_generator(languages, reader, specs):
     for row_values in reader:
         if row_values:
-            w = create_wording(
+            w = Wording(
                 key=row_values[specs.key_col].strip(),
                 exportable=specs.exportable_rule(row_values[specs.exportable_col]),
                 comment=row_values[specs.comment_col],
                 is_comment=specs.is_comment_rule(row_values[specs.is_comment_col]),
                 metadata=OrderedDict(((k, row_values[v]) for k, v in specs.metadata_cols.items())),
-                translations=OrderedDict(zip(languages, [v for v in row_values[specs.translations_start_col:]]))
+                translations=OrderedDict(
+                    zip(languages, [v for v in row_values[specs.translations_start_col:]]))
             )
 
-        wordings.append(w)
-
-    return languages, wordings
+        yield w
 
 def group_wordings_by_comment_key(wordings):
     grouped_wordings = OrderedDict()  # comment_key, [wording, ...]
@@ -170,7 +176,7 @@ def _object_hook(dct):
     if dct and dct[0] and dct[0][0] == 'key':
         keys = [k for k, v in dct]
         if keys[-1] == 'translations':
-            return create_wording(**dict((k, v) for k, v in dct if k in Wording._fields))
+            return Wording(**dict((k, v) for k, v in dct if k in Wording._fields))
     return OrderedDict(dct)
 
 def _read_json(file__obj):
@@ -184,23 +190,32 @@ def read_json(file_or_path):
         with open(file_or_path, 'r') as f:
             return _read_json(f)
 
-def read_excel(file_path, rows_format_specs=default_format_specs, sheet=0):
+def iread_excel(file_path, rows_format_specs=default_format_specs, sheet=0):
     return _read_rows(_get_excel_rows(file_path, rows_format_specs.translations_start_col, sheet), rows_format_specs)
 
+def read_excel(file_path, rows_format_specs=default_format_specs, sheet=0):
+    languages, wordings = iread_excel(file_path, rows_format_specs, sheet)
+    return languages, list(wordings)
 
-def read_csv(file_path, rows_format_specs=default_format_specs):
+def iread_csv(file_path, rows_format_specs=default_format_specs):
     return _read_rows(_get_csv_rows(file_path), rows_format_specs)
 
+def read_csv(file_path, rows_format_specs=default_format_specs):
+    languages, wordings = _read_rows(_get_csv_rows(file_path), rows_format_specs)
+    return languages, list(wordings)
 
-def read_file(file_path, rows_format_specs=default_format_specs):
+
+def read_file(file_path, rows_format_specs=default_format_specs, prefer_generator=True):
 
     _, ext = os.path.splitext(file_path.lower())
 
     if ext == '.json':
         return read_json(file_path)
     elif ext == '.csv':
-        return read_csv(file_path, rows_format_specs)
+        read = iread_csv if prefer_generator else read_csv
+        return read(file_path, rows_format_specs)
     elif ext.startswith('.xls'):
-        return read_excel(file_path, rows_format_specs)
+        read = iread_excel if prefer_generator else read_excel
+        return read(file_path, rows_format_specs)
     else:
         raise AttributeError("Unknown file type: " + ext)

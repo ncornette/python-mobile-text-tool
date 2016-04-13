@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 # coding=utf-8
+from functools import partial
 import json
 
 from xml.sax import saxutils
 import codecs
+from flask.json import JSONEncoder
+from mobileStrings.collection_utils import StreamArray, StreamArrayJSONEncoder
 from mobileStrings.input import default_format_specs, Wording
 import os
 from os import makedirs
@@ -163,19 +166,23 @@ def write_android_strings(languages, wordings, res_dir, res_filename='strings.xm
 def write_ios_strings(languages, wordings, res_dir, res_filename='i18n.strings'):
     _export_languages(languages, wordings, res_dir, res_filename, IOSResourceWriter)
 
+def _json_dump(languages, wordings, file_obj, indent=2, dump_func=json.dump):
+    dump_func(_json_obj(languages, wordings), file_obj, default=StreamArray, indent=indent)
 
-def _write_json(languages, wordings, file_obj, indent=2):
-    json.dump(dict(
-        languages=languages,
-        wordings=[hasattr(w, '_asdict') and w._asdict() or w for w in wordings]), file_obj,
-        indent=indent)
+
+def _json_obj(languages, wordings):
+    return {
+        'languages': languages,
+        'wordings': (w._asdict() for w in wordings)
+    }
+
 
 def write_json(languages, wordings, file_or_path, indent=2):
     if hasattr(file_or_path, 'write'):
-        _write_json(languages, wordings, file_or_path, indent)
+        _json_dump(languages, wordings, file_or_path, indent)
     else:
         with codecs.open(file_or_path, 'w') as f:
-            _write_json(languages, wordings, f, indent)
+            _json_dump(languages, wordings, f, indent)
 
 
 def _write_csv(languages, wordings, file_obj, format_specs):

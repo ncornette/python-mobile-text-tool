@@ -31,7 +31,8 @@ def main(args):
                                                              sheet='master')
     else:
         languages, wordings = mobileStrings.input.read_file(args.input_file,
-                                                            rows_format_specs=in_format_specs)
+                                                            rows_format_specs=in_format_specs,
+                                                            prefer_generator=False)
 
     # File Export
 
@@ -51,7 +52,7 @@ def main(args):
     # Mobile Export
 
     wordings = mobileStrings.input.fix_duplicates(wordings, merge_sections=True)
-    mobileStrings.input.trim(wordings)
+    wordings = mobileStrings.input.trimmed(wordings)
 
     if args.android_res_dir:
         write_android_strings(languages, wordings, args.android_res_dir, args.android_resname)

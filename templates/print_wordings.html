@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<header>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='lib/css/bootstrap-theme.min.css') }}">
+
+</header>
+<body>
+
+    <!-- Table -->
+    <table class="table table-condensed">
+        <thead>
+            <tr>
+                <th>key</th>
+                <th>comment</th>
+                {% for l in languages %}
+                <th>{{ l }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for w in wordings %}
+            <tr class="{{ w.is_comment and 'active' or w.exportable and ' ' or 'danger' }}">
+                <td><samp>{{ w.key }}</samp></td>
+                <td>{{ w.comment }}</td>
+                {% for l in languages %}
+                <td>{{ w.translations[l] }}</td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

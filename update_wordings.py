@@ -29,17 +29,22 @@ def get_parsed_arguments(output_required=True):
     return parsed_args
 
 
-def main(args):
-    languages, wordings = mobileStrings.input.read_file(args.input_file)
-
+def save_from_output_args(args, languages, wordings):
     for f in args.out_file:
         mobileStrings.output.write_file(languages, wordings, f)
 
     if args.android_res_dir:
-        mobileStrings.output.write_android_strings(languages, wordings, args.android_res_dir, args.android_resname)
-
+        mobileStrings.output.write_android_strings(languages, wordings, args.android_res_dir,
+                                                   args.android_resname)
     if args.ios_res_dir:
-        mobileStrings.output.write_ios_strings(languages, wordings, args.ios_res_dir, args.ios_resname)
+        mobileStrings.output.write_ios_strings(languages, wordings, args.ios_res_dir,
+                                               args.ios_resname)
+
+
+def main(args):
+    languages, wordings = mobileStrings.input.read_file(args.input_file, prefer_generator=False)
+    save_from_output_args(args, languages, wordings)
+
 
 if __name__ == '__main__':
     main(get_parsed_arguments())

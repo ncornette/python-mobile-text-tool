@@ -26,10 +26,19 @@ class UnicodeReader:
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         f = UTF8Recoder(f, encoding)
         self.reader = csv.reader(f, dialect=dialect, **kwds)
+        self.row_len = 0
 
     def next(self):
-        row = self.reader.next()
-        return [unicode(s, "utf-8") for s in row]
+        new_row = self.reader.next()
+        while len(new_row) < self.row_len:
+            next_row = self.reader.next()
+
+            # Concat with next line when row is incomplete
+            new_row = new_row[:-1]+['\n'.join((new_row[-1], next_row[0]))]+next_row[1:]
+
+        self.row_len = len(new_row)
+
+        return [unicode(s, "utf-8") for s in new_row]
 
     def __iter__(self):
         return self

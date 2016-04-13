@@ -40,43 +40,54 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_ios_string("%%10 bla 10%% bla 10%%"))
 
     def test_read(self):
-        languages, wordings_from_xlsx = input.read_file('test_translations.xlsx')
-        input.trim(wordings_from_xlsx)
+        languages, wordings = input.read_file('test_translations.xlsx')
+        wordings_from_xlsx = input.trimmed(wordings)
         # print 'csv\n'+'\n'.join(repr(w) for w in wordings_from_xlsx)
 
-        self.assertEqual(wordings_from_xlsx[1].key, u'menu.welcome')
-        self.assertTrue(wordings_from_xlsx[1].exportable)
-        self.assertFalse(wordings_from_xlsx[1].is_comment)
-        self.assertEqual(wordings_from_xlsx[1].translations['fr'], u'Bienvenue !')
+        wordings_from_xlsx.next()
 
-        self.assertEqual(wordings_from_xlsx[2].key, u'menu.home')
-        self.assertTrue(wordings_from_xlsx[2].exportable)
-        self.assertFalse(wordings_from_xlsx[2].is_comment)
-        self.assertEqual(wordings_from_xlsx[2].translations['de'], u'Start')
+        next_wording = wordings_from_xlsx.next()
+        self.assertEqual(next_wording.key, u'menu.welcome')
+        self.assertTrue(next_wording.exportable)
+        self.assertFalse(next_wording.is_comment)
+        self.assertEqual(next_wording.translations['fr'], u'Bienvenue !')
 
-        self.assertEqual(wordings_from_xlsx[3].key, u'menu.news')
-        self.assertTrue(wordings_from_xlsx[3].exportable)
-        self.assertFalse(wordings_from_xlsx[3].is_comment)
-        self.assertEqual(wordings_from_xlsx[3].translations['pl'], u'Nowo\u015bci')
+        next_wording = wordings_from_xlsx.next()
+        self.assertEqual(next_wording.key, u'menu.home')
+        self.assertTrue(next_wording.exportable)
+        self.assertFalse(next_wording.is_comment)
+        self.assertEqual(next_wording.translations['de'], u'Start')
 
-        self.assertEqual(wordings_from_xlsx[4].key, u'comment.section')
-        self.assertTrue(wordings_from_xlsx[4].exportable)
-        self.assertTrue(wordings_from_xlsx[4].is_comment)
+        next_wording = wordings_from_xlsx.next()
+        self.assertEqual(next_wording.key, u'menu.news')
+        self.assertTrue(next_wording.exportable)
+        self.assertFalse(next_wording.is_comment)
+        self.assertEqual(next_wording.translations['pl'], u'Nowo\u015bci')
 
-        self.assertEqual(wordings_from_xlsx[5].key, u'menu.contact')
-        self.assertTrue(wordings_from_xlsx[5].exportable)
-        self.assertFalse(wordings_from_xlsx[5].is_comment)
-        self.assertEqual(wordings_from_xlsx[5].translations['ru'],
+        next_wording = wordings_from_xlsx.next()
+        self.assertEqual(next_wording.key, u'comment.section')
+        self.assertTrue(next_wording.exportable)
+        self.assertTrue(next_wording.is_comment)
+
+        next_wording = wordings_from_xlsx.next()
+        self.assertEqual(next_wording.key, u'menu.contact')
+        self.assertTrue(next_wording.exportable)
+        self.assertFalse(next_wording.is_comment)
+        self.assertEqual(next_wording.translations['ru'],
                          u'\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u044b')
 
-        self.assertEqual(wordings_from_xlsx[7].key, u'menu.share.not.exported')
-        self.assertFalse(wordings_from_xlsx[7].exportable)
-        self.assertFalse(wordings_from_xlsx[7].is_comment)
+        wordings_from_xlsx.next()
 
-        self.assertEqual(wordings_from_xlsx[8].key, u'menu.share')
-        self.assertTrue(wordings_from_xlsx[8].exportable)
-        self.assertFalse(wordings_from_xlsx[8].is_comment)
-        self.assertEqual(wordings_from_xlsx[8].translations['sv'], u'Dela')
+        next_wording = wordings_from_xlsx.next()
+        self.assertEqual(next_wording.key, u'menu.share.not.exported')
+        self.assertFalse(next_wording.exportable)
+        self.assertFalse(next_wording.is_comment)
+
+        next_wording = wordings_from_xlsx.next()
+        self.assertEqual(next_wording.key, u'menu.share')
+        self.assertTrue(next_wording.exportable)
+        self.assertFalse(next_wording.is_comment)
+        self.assertEqual(next_wording.translations['sv'], u'Dela')
 
     def test_export_import(self):
 
@@ -88,7 +99,7 @@ class MyTestCase(unittest.TestCase):
 
         # EXPORT
 
-        languages, wordings_from_xlsx = input.read_file('test_translations.xlsx')
+        languages, wordings_from_xlsx = input.read_excel('test_translations.xlsx')
 
         output.write_android_strings(languages, wordings_from_xlsx, android_target)
         pt_br_android_file_path = os.path.join(android_target, 'values-pt-rBR', 'strings.xml')
@@ -114,18 +125,24 @@ class MyTestCase(unittest.TestCase):
         # READ AND COMPARE
 
         languages, wordings_from_json = input.read_file('test-out/wordings.json')
-        input.trim(wordings_from_json)
+        input.trimmed(wordings_from_json)
         # print 'xls\n'+'\n'.join(repr(w) for w in wordings_from_json)
 
         languages, wordings_from_csv = input.read_file('test-out/wordings.csv')
-        input.trim(wordings_from_csv)
+        wordings_from_csv = input.trimmed(wordings_from_csv)
         # print 'json\n'+'\n'.join(repr(w) for w in wordings_from_csv)
 
-        self.assertListEqual(wordings_from_xlsx, wordings_from_csv)
-        self.assertListEqual(wordings_from_xlsx, wordings_from_json)
+        self.maxDiff = None
+        self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
+        self.assertItemsEqual(wordings_from_xlsx, wordings_from_json)
+
+    def _test_convert_test_input(self):
+        languages, wordings = input.read_excel('test_translations.xlsx')
+        output.write_file(languages, wordings, './test_translations.csv')
+        output.write_file(languages, wordings, './test_translations.json')
 
     def test_unique_keys(self):
-        w = input.create_wording
+        w = input.Wording
         wordings = [
             w(key='SECTION.A', is_comment=True), w(key='a.0'),
             w(key='SECTION.B', is_comment=True), w(key='b.0'), w(key='b.1'), w(key='a.0'),
@@ -144,7 +161,7 @@ class MyTestCase(unittest.TestCase):
                          ' '.join(w.key for w in grouped_wordings))
 
     def test_unique_sections(self):
-        w = input.create_wording
+        w = input.Wording
         wordings = [
             w(key='___'),
             w(key='SECTION.A', is_comment=True), w(key='a.0'),
@@ -160,7 +177,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual('___ SECTION.A a.0 a1 SECTION.B b.0 b.1 SECTION.C', ' '.join(w.key for w in grouped_wordings))
 
     def test_trim(self):
-        w = input.create_wording
+        w = input.Wording
         wordings = [
             w(key='0', translations=OrderedDict(en='hello',   fr='bonjour ')),
             w(key='1', translations=OrderedDict(en='hello\n', fr='bonjour\n\n\n')),
@@ -168,11 +185,11 @@ class MyTestCase(unittest.TestCase):
             w(key='3', translations=OrderedDict(en='\nhello', fr='\n\n\nbonjour'))
         ]
 
-        input.trim(wordings)
+        wordings = input.trimmed(wordings)
 
         expected_translations = OrderedDict(en='hello', fr='bonjour')
-        for index, w in enumerate(wordings[:]):
-            self.assertEqual(expected_translations, wordings[index].translations)
+        for w in wordings:
+            self.assertEqual(expected_translations, w.translations)
 
 if __name__ == '__main__':
     unittest.main()
