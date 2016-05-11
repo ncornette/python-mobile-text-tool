@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
-from functools import partial
-import json
+import simplejson as json
 
 from xml.sax import saxutils
 import codecs
-from flask.json import JSONEncoder
-from mobileStrings.collection_utils import StreamArray, StreamArrayJSONEncoder
-from mobileStrings.input import default_format_specs, Wording
+from mobileStrings.collection_utils import StreamArray
+from mobileStrings.input import default_format_specs, Wording, Wordings
 import os
 from os import makedirs
 import re
@@ -166,15 +164,9 @@ def write_android_strings(languages, wordings, res_dir, res_filename='strings.xm
 def write_ios_strings(languages, wordings, res_dir, res_filename='i18n.strings'):
     _export_languages(languages, wordings, res_dir, res_filename, IOSResourceWriter)
 
+
 def _json_dump(languages, wordings, file_obj, indent=2, dump_func=json.dump):
-    dump_func(_json_obj(languages, wordings), file_obj, default=StreamArray, indent=indent)
-
-
-def _json_obj(languages, wordings):
-    return {
-        'languages': languages,
-        'wordings': (w._asdict() for w in wordings)
-    }
+    dump_func(Wordings('Wordings', languages, wordings), file_obj, default=StreamArray, indent=indent)
 
 
 def write_json(languages, wordings, file_or_path, indent=2):

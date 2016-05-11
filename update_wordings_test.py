@@ -28,14 +28,16 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual("bla %2$@ bla %1$@ bla", output._escape_ios_string("bla {2} bla {1} bla"))
 
     def test_escape_android(self):
-        test_string = u'< > & % %% \' " ’ \n \t \r \f'
-        self.assertEqual(u'&lt; &gt; &amp; %% %% \\\' \\" \\’ \\n \\t \\r \\f', output._escape_android_string(test_string))
+        self.assertEqual(ur"""&lt; &gt; &amp; %% %% \' \" \’ \n \t \r \f""", output._escape_android_string(
+                u'< > & % %% \' " ’ \n \t \r \f'))
+
         self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_android_string("%10 bla 10% bla 10%"))
         self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_android_string("%%10 bla 10%% bla 10%%"))
 
     def test_escape_ios(self):
-        test_string = u'< > & % %% \' " ’ \n \t \r \f'
-        self.assertEqual(u'< > & % %% \' \\" ’ \\n \\t \\r \\f', output._escape_ios_string(test_string))
+        self.assertEqual(ur"""< > & % %% ' \" ’ \n \t \r \f""", output._escape_ios_string(
+                u"< > & % %% ' \" ’ \n \t \r \f"))
+
         self.assertEqual("%10 bla 10% bla 10%", output._escape_ios_string("%10 bla 10% bla 10%"))
         self.assertEqual("%%10 bla 10%% bla 10%%", output._escape_ios_string("%%10 bla 10%% bla 10%%"))
 

@@ -2,8 +2,6 @@
 # coding=utf-8
 
 from flask.helpers import url_for
-from flask.json import htmlsafe_dumps
-from markupsafe import Markup
 
 import mobileStrings
 from mobileStrings.collection_utils import StreamArrayJSONEncoder
@@ -26,6 +24,11 @@ def wordings_table():
     return render_template("wordings_table.html",
                            languages=languages, wordings=(w._asdict() for w in wordings))
 
+@app.route('/print')
+def print_wordings():
+    languages, wordings = mobileStrings.input.read_file(cliargs.input_file)
+    return render_template("print_wordings.html",
+                           languages=languages, wordings=(w._asdict() for w in wordings))
 @app.route('/save')
 def save_wordings():
     #update_wordings.save_from_output_args(cliargs, languages, wordings)

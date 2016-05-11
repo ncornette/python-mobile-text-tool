@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 # coding=utf-8
+import re
 from collections import namedtuple, OrderedDict
-import json
+import simplejson as json
 import collections
 from mobileStrings import csv_unicode
 from mobileStrings.collection_utils import namedtuple_with_defaults
 import os
 
 __author__ = 'nic'
+
+Wordings = namedtuple("Wordings", """\
+    name,
+    languages,
+    wordings""")
 
 Wording = namedtuple_with_defaults("Wording", """\
     key,
@@ -33,13 +39,16 @@ FormatSpec = namedtuple_with_defaults('FormatSpec', """\
 
 default_format_specs = FormatSpec()
 
+
 def _get_csv_rows(file_path):
     csv_file = open(file_path, 'rb')
     reader = csv_unicode.UnicodeReader(csv_file)
     return reader
 
+
 def _get_excel_rows(file_path, translations_start_col, sheet=0):
     return _get_excel_openpyxl_rows(file_path, sheet, translations_start_col)
+
 
 def _get_excel_openpyxl_rows(file_path, sheet=0, translations_start_col=-1):
     import openpyxl
@@ -63,6 +72,7 @@ def _get_excel_openpyxl_rows(file_path, sheet=0, translations_start_col=-1):
 
     for row in iter_rows:
         yield [v.value and v.value.replace(u'\u2028', '\n') or '' for v in row]
+
 
 def _get_excel_xlrd_rows(file_path, sheet=0, translations_start_col=-1):
     import xlrd
@@ -89,11 +99,14 @@ def _check_duplicates(wordings, condition=lambda w: w.exportable and not w.is_co
 
     return duplicate_keys
 
+
 def find_duplicate_wordings(wordings):
     return _check_duplicates(wordings)
 
+
 def find_duplicate_comment_keys(wordings):
     return _check_duplicates(wordings, lambda w: w.is_comment, 'WARN: Duplicate comment key: "')
+
 
 def fix_duplicates(wordings, merge_sections=True):
     new_wordings = wordings
@@ -106,12 +119,14 @@ def fix_duplicates(wordings, merge_sections=True):
 
     return new_wordings
 
+
 def trimmed(wordings):
     for w in wordings:
         for lang, t in w.translations.items():
             if hasattr(t, 'strip'):
                 w.translations[lang] = t.strip()
         yield w
+
 
 def _read_rows(reader, specs=default_format_specs):
     languages = reader.next()[specs.translations_start_col:]
@@ -133,6 +148,7 @@ def _wordings_generator(languages, reader, specs):
             )
 
         yield w
+
 
 def group_wordings_by_comment_key(wordings):
     grouped_wordings = OrderedDict()  # comment_key, [wording, ...]
@@ -156,6 +172,7 @@ def group_wordings_by_comment_key(wordings):
 
     return new_wordings
 
+
 def unique_wordings_overwrite(wordings):
     new_wordings = OrderedDict()
     duplicate_other = collections.defaultdict(lambda: [])
@@ -173,15 +190,19 @@ def unique_wordings_overwrite(wordings):
 
 
 def _object_hook(dct):
-    if dct and dct[0] and dct[0][0] == 'key':
-        keys = [k for k, v in dct]
-        if keys[-1] == 'translations':
+    if dct:
+        if re.match('^key,.*,translations$', ','.join(d[0] for d in dct)):
             return Wording(**dict((k, v) for k, v in dct if k in Wording._fields))
+
+        if re.match('^name,languages,wordings$', ','.join(d[0] for d in dct)):
+            return Wordings(**dict((k, v) for k, v in dct if k in Wordings._fields))
+
     return OrderedDict(dct)
 
+
 def _read_json(file__obj):
-    dct = json.load(file__obj, 'utf-8', object_pairs_hook=_object_hook)
-    return dct['languages'], dct['wordings']
+    return json.load(file__obj, 'utf-8', object_pairs_hook=_object_hook)
+
 
 def read_json(file_or_path):
     if hasattr(file_or_path, 'write'):
@@ -190,15 +211,19 @@ def read_json(file_or_path):
         with open(file_or_path, 'r') as f:
             return _read_json(f)
 
+
 def iread_excel(file_path, rows_format_specs=default_format_specs, sheet=0):
     return _read_rows(_get_excel_rows(file_path, rows_format_specs.translations_start_col, sheet), rows_format_specs)
+
 
 def read_excel(file_path, rows_format_specs=default_format_specs, sheet=0):
     languages, wordings = iread_excel(file_path, rows_format_specs, sheet)
     return languages, list(wordings)
 
+
 def iread_csv(file_path, rows_format_specs=default_format_specs):
     return _read_rows(_get_csv_rows(file_path), rows_format_specs)
+
 
 def read_csv(file_path, rows_format_specs=default_format_specs):
     languages, wordings = _read_rows(_get_csv_rows(file_path), rows_format_specs)
@@ -210,7 +235,8 @@ def read_file(file_path, rows_format_specs=default_format_specs, prefer_generato
     _, ext = os.path.splitext(file_path.lower())
 
     if ext == '.json':
-        return read_json(file_path)
+        wordings_ = read_json(file_path)
+        return wordings_.languages, wordings_.wordings
     elif ext == '.csv':
         read = iread_csv if prefer_generator else read_csv
         return read(file_path, rows_format_specs)
