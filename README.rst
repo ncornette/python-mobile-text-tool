@@ -19,6 +19,33 @@ Features
 CLI
 ---
 
+::
+
+   $ update_wordings.py --help
+   usage: update_wordings.py [-h] [-o [OUT_FILE [OUT_FILE ...]]]
+                             [-a ANDROID_RES_DIR] [-i IOS_RES_DIR]
+                             [--android-resname ANDROID_RESNAME]
+                             [--ios-resname IOS_RESNAME]
+                             input_file
+   
+   Export wordings for Android & IOS.
+   
+   positional arguments:
+     input_file            .csv, .xls, .xlsx, .json formats are supported.
+   
+   optional arguments:
+     -h, --help            show this help message and exit
+     -o [OUT_FILE [OUT_FILE ...]], --out-file [OUT_FILE [OUT_FILE ...]]
+                           .json or .csv output file path (default: None)
+     -a ANDROID_RES_DIR, --android_res_dir ANDROID_RES_DIR
+                           resource directory for android strings (default: None)
+     -i IOS_RES_DIR, --ios_res_dir IOS_RES_DIR
+                           resource directory for android strings (default: None)
+     --android-resname ANDROID_RESNAME
+                           filename for android resource (default: strings.xml)
+     --ios-resname IOS_RESNAME
+                           filename for ios resource (default: i18n.strings)
+   
 To generate translations for android and ios from ``.xlsx`` file :
 
 ::
