@@ -1,0 +1,12 @@
+language: python
+python:
+  - "2.7"
+
+# command to install dependencies
+install:
+  - pip install -r requirements.txt codecov
+
+# command to run tests
+script: ./update_wordings_test.py
+
+after_success: python -m coverage run --source=mobileStrings update_wordings_test.py && codecov
