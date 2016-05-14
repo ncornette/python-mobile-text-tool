@@ -2,6 +2,15 @@
 Mobile Text Tools
 =================
 
+.. image:: https://travis-ci.org/ncornette/python-mobile-text-tool.svg?branch=master
+   :target: https://travis-ci.org/ncornette/python-mobile-text-tool
+
+.. image:: https://codecov.io/gh/ncornette/python-mobile-text-tool/branch/master/graph/badge.svg
+   :target: https://codecov.io/gh/ncornette/python-mobile-text-tool
+
+.. image:: https://api.codacy.com/project/badge/Grade/a37555ff09aa4a09a51d7b3a34e810c2
+   :target: https://www.codacy.com/app/nicolas-cornette/python-mobile-text-tool?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ncornette/python-mobile-text-tool&amp;utm_campaign=Badge_Grade
+
 Mobile Text Tools is a set of tools to edit translations for ``Android``
 and ``IOS`` mobile applications. It provides a data model represented in
 ``json`` and can read and write different formats.
