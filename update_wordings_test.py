@@ -5,6 +5,9 @@ import shutil
 import re
 from mobileStrings import output
 from mobileStrings import input
+from mobileStrings.collection_utils import namedtuple_with_defaults
+from mobileStrings.collection_utils import StreamArrayJSONEncoder
+import json
 import os
 
 __author__ = 'nic'
@@ -192,6 +195,39 @@ class MyTestCase(unittest.TestCase):
         expected_translations = OrderedDict(en='hello', fr='bonjour')
         for w in wordings:
             self.assertEqual(expected_translations, w.translations)
+
+    def test_collection_utils(self):
+        range_g = (v for v in range(10))
+        assert json.dumps(range_g, cls=StreamArrayJSONEncoder) == '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]'
+        assert json.dumps(range_g, cls=StreamArrayJSONEncoder) == '[]'
+
+        Foo = namedtuple_with_defaults("Foo", 'name', dict(name="bar"))
+
+        assert Foo().name == "bar"
+        assert Foo('blaz').name == "blaz"
+        assert Foo(name='holy').name == "holy"
+
+        Foo = namedtuple_with_defaults("Foo", 'name', dict(name="bar"))
+
+        assert Foo().name == "bar"
+        assert Foo('blaz').name == "blaz"
+        assert Foo(name='holy').name == "holy"
+
+        Foo = namedtuple_with_defaults("Foo", 'name grail', dict(name="bar"))
+
+        assert Foo().name == "bar"
+        assert Foo().grail is None
+        assert Foo('blaz', True).grail == True
+        assert Foo(name='holy').name == "holy"
+
+        Foo = namedtuple_with_defaults("Foo", 'name grail', dict(name="bar"))
+
+        assert Foo().name == "bar"
+        assert Foo().grail is None
+        assert Foo('blaz', True).grail == True
+        assert Foo(name='holy').name == "holy"
+
+
 
 if __name__ == '__main__':
     unittest.main()

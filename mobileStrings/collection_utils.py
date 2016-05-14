@@ -41,36 +41,3 @@ class StreamArray(list):
     def __len__(self):
         return 1
 
-
-if __name__ == '__main__':
-
-    range_g = (v for v in range(10))
-    assert json.dumps(range_g, cls=StreamArrayJSONEncoder) == '[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]'
-    assert json.dumps(range_g, cls=StreamArrayJSONEncoder) == '[]'
-
-    Foo = namedtuple_with_defaults("Foo", 'name', dict(name="bar"))
-
-    assert Foo().name == "bar"
-    assert Foo('blaz').name == "blaz"
-    assert Foo(name='holy').name == "holy"
-
-    Foo = namedtuple_with_defaults("Foo", 'name', dict(name="bar"))
-
-    assert Foo().name == "bar"
-    assert Foo('blaz').name == "blaz"
-    assert Foo(name='holy').name == "holy"
-
-    Foo = namedtuple_with_defaults("Foo", 'name grail', dict(name="bar"))
-
-    assert Foo().name == "bar"
-    assert Foo().grail is None
-    assert Foo('blaz', True).grail == True
-    assert Foo(name='holy').name == "holy"
-
-    Foo = namedtuple_with_defaults("Foo", 'name grail', dict(name="bar"))
-
-    assert Foo().name == "bar"
-    assert Foo().grail is None
-    assert Foo('blaz', True).grail == True
-    assert Foo(name='holy').name == "holy"
-
