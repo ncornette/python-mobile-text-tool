@@ -10,7 +10,7 @@ def get_parsed_arguments(output_required=True):
                                           formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     args_parser.add_argument('input_file',
                              help=".csv, .xls, .xlsx, .json formats are supported.")
-    args_parser.add_argument('-o', '--out-file', default=None, nargs='*',
+    args_parser.add_argument('-o', '--out-file', default=[], nargs='*',
                              help=".json or .csv output file path")
     args_parser.add_argument('-a', '--android_res_dir', default=None,
                              help="resource directory for android strings")
@@ -31,18 +31,18 @@ def get_parsed_arguments(output_required=True):
 
 def save_from_output_args(args, languages, wordings):
     for f in args.out_file:
-        mobileStrings.output.write_file(languages, wordings, f)
+        mobileStrings.text_out.write_file(languages, wordings, f)
 
     if args.android_res_dir:
-        mobileStrings.output.write_android_strings(languages, wordings, args.android_res_dir,
-                                                   args.android_resname)
+        mobileStrings.text_out.write_android_strings(languages, wordings, args.android_res_dir,
+                                                     args.android_resname)
     if args.ios_res_dir:
-        mobileStrings.output.write_ios_strings(languages, wordings, args.ios_res_dir,
-                                               args.ios_resname)
+        mobileStrings.text_out.write_ios_strings(languages, wordings, args.ios_res_dir,
+                                                 args.ios_resname)
 
 
 def main(args):
-    languages, wordings = mobileStrings.input.read_file(args.input_file, prefer_generator=False)
+    languages, wordings = mobileStrings.text_in.read_file(args.input_file, prefer_generator=False)
     save_from_output_args(args, languages, wordings)
 
 

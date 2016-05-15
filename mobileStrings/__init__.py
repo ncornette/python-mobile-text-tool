@@ -1,4 +1,4 @@
 #!/usr/bin/env python
 # coding=utf-8
-import output
-import input
+import text_out
+import text_in

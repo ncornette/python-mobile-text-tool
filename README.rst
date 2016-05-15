@@ -78,12 +78,12 @@ Python interface
 Read :
 ~~~~~~
 
-Function ``read_file(f)`` from module ``input`` supports ``.xls``,
+Function ``read_file(f)`` from module ``text_in`` supports ``.xls``,
 ``.xlsx``, ``.csv``, ``.json`` file formats.
 
 .. code:: python
 
-    languages, wordings = mobileStrings.input.read_file('./test_translations.json')
+    languages, wordings = mobileStrings.text_in.read_file('./test_translations.json')
     print ', '.join(languages)
 
 
@@ -100,9 +100,9 @@ specify columns numbers with ``FormatSpec``
 
 .. code:: python
 
-    specs = mobileStrings.input.FormatSpec(0, 1, 2, 3, 4, bool, bool, {}) # Default format_spec (all params are optional)
+    specs = mobileStrings.text_in.FormatSpec(0, 1, 2, 3, 4, bool, bool, {}) # Default format_spec (all params are optional)
     
-    languages, wordings = mobileStrings.input.read_file('./test_translations.csv', specs)
+    languages, wordings = mobileStrings.text_in.read_file('./test_translations.csv', specs)
     print ', '.join(languages)
 
 
@@ -152,7 +152,7 @@ To search a wording by its key, you can convert the ``list`` of
 Write :
 ~~~~~~~
 
-Writing is very simple : use a ``write_`` function from the ``output``
+Writing is very simple : use a ``write_`` function from the ``text_out``
 module. It supports ``Android``, ``IOS``, ``json``, ``csv`` output
 formats.
 
@@ -160,8 +160,8 @@ For mobile applications :
 
 .. code:: python
 
-    mobileStrings.output.write_android_strings(languages, wordings, '~/dev/myAndProject/res')
-    mobileStrings.output.write_ios_strings(languages, wordings, '~/dev/myIOSProject/res')
+    mobileStrings.text_out.write_android_strings(languages, wordings, '~/dev/myAndProject/res')
+    mobileStrings.text_out.write_ios_strings(languages, wordings, '~/dev/myIOSProject/res')
 
 Csv example :
 
@@ -171,7 +171,7 @@ Csv example :
     sf = cStringIO.StringIO()
     
     # Write csv in a file-like object, for the first 3 languages only
-    mobileStrings.output.write_csv(languages[:3], wordings, sf)
+    mobileStrings.text_out.write_csv(languages[:3], wordings, sf)
     print sf.getvalue()
     sf.close()
 

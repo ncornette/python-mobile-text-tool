@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
-from mobileStrings.input import create_format_specs
+from mobileStrings.text_in import create_format_specs
 import os
 
 import update_wordings
 import mobileStrings
-from mobileStrings.output import IOSResourceWriter, _export_lang_file, \
+from mobileStrings.text_out import IOSResourceWriter, _export_lang_file, \
     write_ios_strings, write_android_strings, AndroidResourceWriter
 
 
@@ -26,13 +26,13 @@ def main(args):
 
     _, input_ext = os.path.splitext(args.input_file)
     if input_ext in ('.xls', '.xlsx'):
-        languages, wordings = mobileStrings.input.read_excel(args.input_file,
-                                                             rows_format_specs=in_format_specs,
-                                                             sheet='master')
+        languages, wordings = mobileStrings.text_in.read_excel(args.input_file,
+                                                               rows_format_specs=in_format_specs,
+                                                               sheet='master')
     else:
-        languages, wordings = mobileStrings.input.read_file(args.input_file,
-                                                            rows_format_specs=in_format_specs,
-                                                            prefer_generator=False)
+        languages, wordings = mobileStrings.text_in.read_file(args.input_file,
+                                                              rows_format_specs=in_format_specs,
+                                                              prefer_generator=False)
 
     # File Export
 
@@ -42,17 +42,17 @@ def main(args):
 
         _, ext = os.path.splitext(f)
         if ext.lower() == '.csv':
-            mobileStrings.output.write_csv(languages, wordings, f, create_format_specs(
+            mobileStrings.text_out.write_csv(languages, wordings, f, create_format_specs(
                 metadata_cols=dict(to_be_translated=4, constraint=5, max_chars=6),
                 translations_start_col=10
             ))
         elif ext.lower() == '.json':
-            mobileStrings.output.write_json(languages, wordings, f)
+            mobileStrings.text_out.write_json(languages, wordings, f)
 
     # Mobile Export
 
-    wordings = mobileStrings.input.fix_duplicates(wordings, merge_sections=True)
-    wordings = mobileStrings.input.trimmed(wordings)
+    wordings = mobileStrings.text_in.fix_duplicates(wordings, merge_sections=True)
+    wordings = mobileStrings.text_in.trimmed(wordings)
 
     if args.android_res_dir:
         write_android_strings(languages, wordings, args.android_res_dir, args.android_resname)

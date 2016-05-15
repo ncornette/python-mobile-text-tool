@@ -20,13 +20,13 @@ def edit_wordings():
 
 @app.route('/table')
 def wordings_table():
-    languages, wordings = mobileStrings.input.read_file(cliargs.input_file)
+    languages, wordings = mobileStrings.text_in.read_file(cliargs.input_file)
     return render_template("wordings_table.html",
                            languages=languages, wordings=(w._asdict() for w in wordings))
 
 @app.route('/print')
 def print_wordings():
-    languages, wordings = mobileStrings.input.read_file(cliargs.input_file)
+    languages, wordings = mobileStrings.text_in.read_file(cliargs.input_file)
     return render_template("print_wordings.html",
                            languages=languages, wordings=(w._asdict() for w in wordings))
 @app.route('/save')

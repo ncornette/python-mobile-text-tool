@@ -5,7 +5,7 @@ import simplejson as json
 from xml.sax import saxutils
 import codecs
 from mobileStrings.collection_utils import StreamArray
-from mobileStrings.input import default_format_specs, Wording, Wordings
+from mobileStrings.text_in import default_format_specs, Wording, Wordings
 import os
 from os import makedirs
 import re
@@ -166,7 +166,7 @@ def write_ios_strings(languages, wordings, res_dir, res_filename='i18n.strings')
 
 
 def _json_dump(languages, wordings, file_obj, indent=2, dump_func=json.dump):
-    dump_func(Wordings('Wordings', languages, wordings), file_obj, default=StreamArray, indent=indent)
+    dump_func(Wordings(languages, wordings), file_obj, default=StreamArray, indent=indent)
 
 
 def write_json(languages, wordings, file_or_path, indent=2):

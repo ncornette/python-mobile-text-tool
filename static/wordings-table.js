@@ -8,9 +8,9 @@
   var options = {};
 
 
-  function setWordings(new_languages, new_wordings) {
-    languages = new_languages;
-    wordings = new_wordings;
+  function setWordings(newLanguages, newWordings) {
+    languages = newLanguages;
+    wordings = newWordings;
 
     columns = [
       {id: "key", name: "Key", field: "key", width: 120, cssClass: "cell-key", editor: Slick.Editors.Text, validator: requiredFieldValidator},
@@ -26,8 +26,8 @@
     ];
 
     for (var  i = 0; i < languages.length; i++) {
-      l = languages[i]
-      columns.push({id: l, name: l, field: l, width: 100, editor: Slick.Editors.LongText})
+      var l = languages[i]
+      columns.push({id: l, name: l, field: l, width: 100, editor: Slick.Editors.LongText});
     }
 
     options = {
@@ -41,7 +41,7 @@
   }
 
   function requiredFieldValidator(value) {
-    if (value == null || value == undefined || !value.length) {
+    if (value == null || typeof value == "undefined" || !value.length) {
       return {valid: false, msg: "This is a required field"};
     } else {
       return {valid: true, msg: null};
@@ -51,7 +51,7 @@
   $(function () {
     for (var i = 0; i < wordings.length; i++) {
       var d = (data[i] = {});
-      var w = wordings[i]
+      var w = wordings[i];
 
       d["key"] = w.key;
       d["exportable"] = w.exportable;
@@ -59,7 +59,7 @@
       d["comment"] = w.comment;
 
       for (var  j = 0; j < languages.length; j++) {
-          l = languages[j]
+          l = languages[j];
           d[l] = w.translations[l];
       }
     }
@@ -75,4 +75,4 @@
       grid.updateRowCount();
       grid.render();
     });
-  })
+  });

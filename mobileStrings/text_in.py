@@ -11,7 +11,6 @@ import os
 __author__ = 'nic'
 
 Wordings = namedtuple("Wordings", """\
-    name,
     languages,
     wordings""")
 
@@ -194,7 +193,7 @@ def _object_hook(dct):
         if re.match('^key,.*,translations$', ','.join(d[0] for d in dct)):
             return Wording(**dict((k, v) for k, v in dct if k in Wording._fields))
 
-        if re.match('^name,languages,wordings$', ','.join(d[0] for d in dct)):
+        if re.match('^languages,wordings$', ','.join(d[0] for d in dct)):
             return Wordings(**dict((k, v) for k, v in dct if k in Wordings._fields))
 
     return OrderedDict(dct)
@@ -235,8 +234,7 @@ def read_file(file_path, rows_format_specs=default_format_specs, prefer_generato
     _, ext = os.path.splitext(file_path.lower())
 
     if ext == '.json':
-        wordings_ = read_json(file_path)
-        return wordings_.languages, wordings_.wordings
+        return read_json(file_path)
     elif ext == '.csv':
         read = iread_csv if prefer_generator else read_csv
         return read(file_path, rows_format_specs)
