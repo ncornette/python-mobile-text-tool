@@ -38,7 +38,8 @@ def main(args):
 
     for f in args.out_file:
         file_path, _ = os.path.split(f)
-        not os.path.exists(file_path) and os.makedirs(file_path)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
 
         _, ext = os.path.splitext(f)
         if ext.lower() == '.csv':

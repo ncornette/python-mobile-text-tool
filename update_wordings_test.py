@@ -45,7 +45,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual("%%10 bla 10%% bla 10%%", text_out._escape_ios_string("%%10 bla 10%% bla 10%%"))
 
     def test_read(self):
-        languages, wordings = text_in.read_file('test_translations.xlsx')
+        _, wordings = text_in.read_file('test_translations.xlsx')
         wordings_from_xlsx = text_in.trimmed(wordings)
         # print 'csv\n'+'\n'.join(repr(w) for w in wordings_from_xlsx)
 
@@ -141,10 +141,14 @@ class MyTestCase(unittest.TestCase):
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_json)
 
-    def _test_convert_test_input(self):
+    def test_convert_test_input(self):
         languages, wordings = text_in.read_excel('test_translations.xlsx')
         text_out.write_file(languages, wordings, './test_translations.csv')
+        self.assertTrue(os.path.exists('./test_translations.csv'))
+        self.assertGreater(os.stat('./test_translations.csv').st_size, 0)
         text_out.write_file(languages, wordings, './test_translations.json')
+        self.assertTrue(os.path.exists('./test_translations.json'))
+        self.assertGreater(os.stat('./test_translations.json').st_size, 0)
 
     def test_unique_keys(self):
         w = text_in.Wording
