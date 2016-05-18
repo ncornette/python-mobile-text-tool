@@ -27,6 +27,11 @@ def replace_tokens(s, make_token=None):
 single_percent = re.compile('(^|[^%])%([^%]|$)')
 double_percent = lambda s: single_percent.sub('\\1%%\\2', s)
 
+
+def _to_android_res_name(s):
+    return re.sub(r'([A-Z])', r'_\1', re.sub(r'[^A-Z_a-z_0-9]', r'_', s)).lower()
+
+
 def _escape_android_string(s):
 
     def escape_chars(string):
@@ -130,26 +135,41 @@ class IOSResourceWriter(object):
     def write_footer(self):
         pass
 
-def _export_lang_file(language, from_language, wordings, res_dir, res_filename, writer_type):
+
+def _export_lang_file(language, from_language, wordings, res_dir, res_filename, writer_type,
+                      split_files=True):
     lang_dirname = writer_type.get_lang_dirname(language).format(language)
     res_lang_dir_path = os.path.join(res_dir, lang_dirname)
 
     if not os.path.exists(res_lang_dir_path):
         makedirs(res_lang_dir_path)
 
-    with codecs.open(os.path.join(res_lang_dir_path, res_filename), 'w', 'utf-8') as f:
+    f = codecs.open(os.path.join(res_lang_dir_path, res_filename), 'w', 'utf-8')
+    try:
         writer = writer_type(f)
         writer.write_header(language)
 
         for wording in wordings:
             if wording.is_comment:
-                writer.write_comment(wording.key + ' - ' + wording.comment)
+                if split_files:
+                    writer.write_footer()
+                    f.close()
+                    new_filename = re.sub(r'([^\.]*)(\.?.*)',
+                                          r'\1_{}\2'.format(
+                                                  _to_android_res_name(wording.key)), res_filename)
+                    f = codecs.open(os.path.join(res_lang_dir_path, new_filename), 'w', 'utf-8')
+                    writer = writer_type(f)
+                    writer.write_header(language)
+                    writer.write_comment(wording.comment)
+                else:
+                    writer.write_comment(wording.key + ' - ' + wording.comment)
             elif wording.exportable:
                 translation = wording.translations.get(from_language)
                 if translation:
                     writer.write_string(wording.key, translation)
-
+    finally:
         writer.write_footer()
+        f.close()
 
 
 def _export_languages(languages, wordings, res_dir, res_filename, writer_type):
