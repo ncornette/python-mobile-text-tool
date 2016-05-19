@@ -65,14 +65,14 @@ To generate translations for android and ios from ``.xlsx`` file :
 
 ::
 
-    # python update_wordings.py my_wordings.xlsx -i out/ios -a out/android
+    $ update_wordings my_wordings.xlsx -i out/ios -a out/android
 
 To generate translations from json file for android with custom resource
 filename :
 
 ::
 
-    # python update_wordings.py my_wordings.json -a out/android --android-resname my_strings.xml
+    $ update_wordings my_wordings.json -a out/android --android-resname my_strings.xml
 
 Python interface
 ----------------
