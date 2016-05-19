@@ -11,6 +11,9 @@ Mobile Text Tools
 .. image:: https://api.codacy.com/project/badge/Grade/a37555ff09aa4a09a51d7b3a34e810c2
    :target: https://www.codacy.com/app/nicolas-cornette/python-mobile-text-tool?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=ncornette/python-mobile-text-tool&amp;utm_campaign=Badge_Grade
 
+.. image:: https://img.shields.io/pypi/v/Mobile-Text-Tool.svg?maxAge=2592000
+   :target: https://pypi.python.org/pypi/Mobile-Text-Tool
+
 Mobile Text Tools is a set of tools to edit translations for ``Android``
 and ``IOS`` mobile applications. It provides a data model represented in
 ``json`` and can read and write different formats.
@@ -30,12 +33,12 @@ CLI
 
 ::
 
-   $ update_wordings.py --help
-   usage: update_wordings.py [-h] [-o [OUT_FILE [OUT_FILE ...]]]
-                             [-a ANDROID_RES_DIR] [-i IOS_RES_DIR]
-                             [--android-resname ANDROID_RESNAME]
-                             [--ios-resname IOS_RESNAME]
-                             input_file
+   $ update_wordings --help
+   usage: update_wordings [-h] [-o [OUT_FILE [OUT_FILE ...]]]
+                          [-a ANDROID_RES_DIR] [-i IOS_RES_DIR]
+                          [--android-resname ANDROID_RESNAME]
+                          [--ios-resname IOS_RESNAME] [-s]
+                          input_file
    
    Export wordings for Android & IOS.
    
@@ -45,7 +48,7 @@ CLI
    optional arguments:
      -h, --help            show this help message and exit
      -o [OUT_FILE [OUT_FILE ...]], --out-file [OUT_FILE [OUT_FILE ...]]
-                           .json or .csv output file path (default: None)
+                           .json or .csv output file path (default: [])
      -a ANDROID_RES_DIR, --android_res_dir ANDROID_RES_DIR
                            resource directory for android strings (default: None)
      -i IOS_RES_DIR, --ios_res_dir IOS_RES_DIR
@@ -54,7 +57,10 @@ CLI
                            filename for android resource (default: strings.xml)
      --ios-resname IOS_RESNAME
                            filename for ios resource (default: i18n.strings)
-   
+     -s, --split-files     Export sections as separate ios and android resource
+                           files, comment key is used for naming new files
+                           (default: False)   
+
 To generate translations for android and ios from ``.xlsx`` file :
 
 ::
