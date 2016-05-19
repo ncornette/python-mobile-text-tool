@@ -6,7 +6,7 @@ import os
 import update_wordings
 import mobileStrings
 from mobileStrings.text_out import IOSResourceWriter, _export_lang_file, \
-    write_ios_strings, write_android_strings, AndroidResourceWriter
+    write_ios_strings, write_android_strings, ANDResourceWriter
 
 
 def main(args):
@@ -57,7 +57,7 @@ def main(args):
 
     if args.android_res_dir:
         write_android_strings(languages, wordings, args.android_res_dir, args.android_resname)
-        _export_lang_file('', 'en', wordings, args.android_res_dir, args.android_resname, AndroidResourceWriter)
+        _export_lang_file('', 'en', wordings, args.android_res_dir, args.android_resname, ANDResourceWriter)
 
     if args.ios_res_dir:
         write_ios_strings(languages, wordings, args.ios_res_dir, args.ios_resname)

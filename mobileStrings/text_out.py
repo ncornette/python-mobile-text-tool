@@ -27,6 +27,27 @@ def replace_tokens(s, make_token=None):
 single_percent = re.compile('(^|[^%])%([^%]|$)')
 double_percent = lambda s: single_percent.sub('\\1%%\\2', s)
 
+
+def _android_res_filename(key, base_filename='strings.xml'):
+    if not key:
+        return base_filename
+
+    android_key = re.sub(r'[^A-Za-z0-9_]', r'_', key)
+    android_key = re.sub(r'([A-Z])', r'_\1', android_key).lower()
+    android_key = re.sub(r'_{2,}', r'_', android_key).lower()
+    return re.sub(r'([^\.]*)(\.?.*)', r'\1_{}\2'.format(android_key), base_filename)
+
+
+def _ios_res_filename(key, base_filename='i18n.strings'):
+    if not key:
+        return base_filename
+
+    ios_key = re.sub(r'[^A-Za-z0-9]+', r'_', key)
+    split_key = re.split(r'_(\w)', ios_key[0].upper()+ios_key[1:])
+    ios_key = ''.join([odd(i) and s.upper() or s for i, s in enumerate(split_key)])
+    return re.sub(r'([^\.]*)(\.?.*)', r'\1{}\2'.format(ios_key), base_filename)
+
+
 def _escape_android_string(s):
 
     def escape_chars(string):
@@ -85,13 +106,18 @@ def _escape_ios_string(s):
     string = replace_tokens(string, ios_token)
     return string
 
-class AndroidResourceWriter(object):
+
+class ANDResourceWriter(object):
     def __init__(self, out_file):
         self.out_file = out_file
 
     @staticmethod
     def get_lang_dirname(lang):
         return 'values' + (lang and '-' + '-r'.join(lang.split('_')))
+
+    @staticmethod
+    def get_res_filename_converter():
+        return _android_res_filename
 
     def write_header(self, lang):
         self.out_file.write(u'<?xml version="1.0" encoding="UTF-8"?>\n<resources>\n')
@@ -116,11 +142,15 @@ class IOSResourceWriter(object):
     def get_lang_dirname(lang):
         return '{}.lproj'.format(lang)
 
+    @staticmethod
+    def get_res_filename_converter():
+        return _ios_res_filename
+
     def write_header(self, lang):
-        self.out_file.write(u'//Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
+        self.out_file.write(u'// Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
 
     def write_comment(self, comment):
-        self.out_file.write(u'\n//{}\n'.format(comment))
+        self.out_file.write(u'\n// {}\n'.format(comment))
 
     def write_string(self, key, string):
         self.out_file.write(u'"{}"="'.format(key))
@@ -130,39 +160,59 @@ class IOSResourceWriter(object):
     def write_footer(self):
         pass
 
-def _export_lang_file(language, from_language, wordings, res_dir, res_filename, writer_type):
+
+def _export_lang_file(
+        language, from_language, wordings, res_dir, res_filename, writer_type, split_files):
+
     lang_dirname = writer_type.get_lang_dirname(language).format(language)
     res_lang_dir_path = os.path.join(res_dir, lang_dirname)
 
     if not os.path.exists(res_lang_dir_path):
         makedirs(res_lang_dir_path)
 
-    with codecs.open(os.path.join(res_lang_dir_path, res_filename), 'w', 'utf-8') as f:
+    f = codecs.open(os.path.join(res_lang_dir_path, res_filename), 'w', 'utf-8')
+    try:
         writer = writer_type(f)
         writer.write_header(language)
 
         for wording in wordings:
             if wording.is_comment:
-                writer.write_comment(wording.key + ' - ' + wording.comment)
+                if split_files:
+                    writer.write_footer()
+                    f.close()
+                    new_filename = writer_type.get_res_filename_converter()(wording.key, res_filename)
+                    f = codecs.open(os.path.join(res_lang_dir_path, new_filename), 'w', 'utf-8')
+                    writer = writer_type(f)
+                    writer.write_header(language)
+                    writer.write_comment(wording.comment)
+                else:
+                    writer.write_comment(wording.key + ' - ' + wording.comment)
             elif wording.exportable:
                 translation = wording.translations.get(from_language)
                 if translation:
                     writer.write_string(wording.key, translation)
-
+    finally:
         writer.write_footer()
+        f.close()
 
 
-def _export_languages(languages, wordings, res_dir, res_filename, writer_type):
+def _export_languages(languages, wordings, res_dir, res_filename, writer_type, split_files):
     for lang in languages:
-        _export_lang_file(lang, lang, wordings, res_dir, res_filename, writer_type)
+        _export_lang_file(lang, lang, wordings, res_dir, res_filename, writer_type, split_files)
 
 
-def write_android_strings(languages, wordings, res_dir, res_filename='strings.xml'):
-    _export_languages(languages, wordings, res_dir, res_filename, AndroidResourceWriter)
+def write_android_strings(languages, wordings, res_dir,
+                          res_filename='strings.xml',
+                          split_files=False):
+
+    _export_languages(languages, wordings, res_dir, res_filename, ANDResourceWriter, split_files)
 
 
-def write_ios_strings(languages, wordings, res_dir, res_filename='i18n.strings'):
-    _export_languages(languages, wordings, res_dir, res_filename, IOSResourceWriter)
+def write_ios_strings(languages, wordings, res_dir,
+                      res_filename='i18n.strings',
+                      split_files=False):
+
+    _export_languages(languages, wordings, res_dir, res_filename, IOSResourceWriter, split_files)
 
 
 def _json_dump(languages, wordings, file_obj, indent=2, dump_func=json.dump):
