@@ -44,10 +44,11 @@ def save_from_output_args(args, languages, wordings):
                                                  args.ios_resname, args.split_files)
 
 
-def main(args):
+def main():
+    args = get_parsed_arguments()
     languages, wordings = mobileStrings.text_in.read_file(args.input_file, prefer_generator=False)
     save_from_output_args(args, languages, wordings)
 
 
 if __name__ == '__main__':
-    main(get_parsed_arguments())
+    main()

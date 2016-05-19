@@ -97,7 +97,6 @@ class MyTestCase(unittest.TestCase):
     def test_read(self):
         _, wordings = text_in.read_file('test_translations.xlsx')
         wordings_from_xlsx = text_in.trimmed(wordings)
-        # print 'csv\n'+'\n'.join(repr(w) for w in wordings_from_xlsx)
 
         wordings_from_xlsx.next()
 
@@ -233,11 +232,9 @@ class MyTestCase(unittest.TestCase):
 
         languages, wordings_from_json = text_in.read_file('test-out/wordings.json')
         text_in.trimmed(wordings_from_json)
-        # print 'xls\n'+'\n'.join(repr(w) for w in wordings_from_json)
 
         languages, wordings_from_csv = text_in.read_file('test-out/wordings.csv')
         wordings_from_csv = text_in.trimmed(wordings_from_csv)
-        # print 'json\n'+'\n'.join(repr(w) for w in wordings_from_csv)
 
         self.maxDiff = None
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
