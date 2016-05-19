@@ -20,11 +20,14 @@ def get_parsed_arguments(output_required=True):
                              help="filename for android resource")
     args_parser.add_argument('--ios-resname', default="i18n.strings",
                              help="filename for ios resource")
+    args_parser.add_argument('-s', '--split-files', default=False, action='store_true',
+                             help="Export sections as separate ios and android resource files, "
+                                  "comment key is used for naming new files")
     parsed_args = args_parser.parse_args()
 
     if output_required and \
             not (parsed_args.ios_res_dir or parsed_args.android_res_dir or parsed_args.out_file):
-        args_parser.error('No output dir specified, please add any of -a, -i, -o')
+        args_parser.error('No output specified, please add any of -a, -i, -o')
 
     return parsed_args
 
@@ -35,10 +38,10 @@ def save_from_output_args(args, languages, wordings):
 
     if args.android_res_dir:
         mobileStrings.text_out.write_android_strings(languages, wordings, args.android_res_dir,
-                                                     args.android_resname)
+                                                     args.android_resname, args.split_files)
     if args.ios_res_dir:
         mobileStrings.text_out.write_ios_strings(languages, wordings, args.ios_res_dir,
-                                                 args.ios_resname)
+                                                 args.ios_resname, args.split_files)
 
 
 def main(args):

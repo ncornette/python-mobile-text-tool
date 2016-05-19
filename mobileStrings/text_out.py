@@ -106,7 +106,8 @@ def _escape_ios_string(s):
     string = replace_tokens(string, ios_token)
     return string
 
-class AndroidResourceWriter(object):
+
+class ANDResourceWriter(object):
     def __init__(self, out_file):
         self.out_file = out_file
 
@@ -146,10 +147,10 @@ class IOSResourceWriter(object):
         return _ios_res_filename
 
     def write_header(self, lang):
-        self.out_file.write(u'//Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
+        self.out_file.write(u'// Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
 
     def write_comment(self, comment):
-        self.out_file.write(u'\n//{}\n'.format(comment))
+        self.out_file.write(u'\n// {}\n'.format(comment))
 
     def write_string(self, key, string):
         self.out_file.write(u'"{}"="'.format(key))
@@ -160,8 +161,9 @@ class IOSResourceWriter(object):
         pass
 
 
-def _export_lang_file(language, from_language, wordings, res_dir, res_filename, writer_type,
-                      split_files=True):
+def _export_lang_file(
+        language, from_language, wordings, res_dir, res_filename, writer_type, split_files):
+
     lang_dirname = writer_type.get_lang_dirname(language).format(language)
     res_lang_dir_path = os.path.join(res_dir, lang_dirname)
 
@@ -194,17 +196,23 @@ def _export_lang_file(language, from_language, wordings, res_dir, res_filename, 
         f.close()
 
 
-def _export_languages(languages, wordings, res_dir, res_filename, writer_type):
+def _export_languages(languages, wordings, res_dir, res_filename, writer_type, split_files):
     for lang in languages:
-        _export_lang_file(lang, lang, wordings, res_dir, res_filename, writer_type)
+        _export_lang_file(lang, lang, wordings, res_dir, res_filename, writer_type, split_files)
 
 
-def write_android_strings(languages, wordings, res_dir, res_filename='strings.xml'):
-    _export_languages(languages, wordings, res_dir, res_filename, AndroidResourceWriter)
+def write_android_strings(languages, wordings, res_dir,
+                          res_filename='strings.xml',
+                          split_files=False):
+
+    _export_languages(languages, wordings, res_dir, res_filename, ANDResourceWriter, split_files)
 
 
-def write_ios_strings(languages, wordings, res_dir, res_filename='i18n.strings'):
-    _export_languages(languages, wordings, res_dir, res_filename, IOSResourceWriter)
+def write_ios_strings(languages, wordings, res_dir,
+                      res_filename='i18n.strings',
+                      split_files=False):
+
+    _export_languages(languages, wordings, res_dir, res_filename, IOSResourceWriter, split_files)
 
 
 def _json_dump(languages, wordings, file_obj, indent=2, dump_func=json.dump):
