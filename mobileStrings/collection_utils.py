@@ -24,6 +24,7 @@ class StreamArrayJSONEncoder(JSONEncoder):
             return StreamArray(o)
         return JSONEncoder.default(self, o)
 
+
 class StreamArray(list):
 
     def __init__(self, o):

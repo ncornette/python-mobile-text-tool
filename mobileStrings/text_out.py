@@ -13,10 +13,20 @@ import re
 __author__ = 'nic'
 
 enum_token = re.compile('{(\\d*)}')
-odd = lambda n: n % 2 == 1
+single_percent = re.compile('(^|[^%])%([^%]|$)')
 
-android_token = lambda n: '%' + (n and n + '$') + 's'
-ios_token = lambda n: '%' + (n and n + '$') + '@'
+
+def odd(n):
+    return n % 2 == 1
+
+
+def android_token(n):
+    return '%' + (n and n + '$') + 's'
+
+
+def ios_token(n):
+    return '%' + (n and n + '$') + '@'
+
 
 def replace_tokens(s, make_token=None):
     if not make_token:
@@ -24,8 +34,9 @@ def replace_tokens(s, make_token=None):
     split = enum_token.split(s)
     return ''.join(make_token(v) if odd(i) else v for i, v in enumerate(split))
 
-single_percent = re.compile('(^|[^%])%([^%]|$)')
-double_percent = lambda s: single_percent.sub('\\1%%\\2', s)
+
+def double_percent(s):
+    return single_percent.sub('\\1%%\\2', s)
 
 
 def _android_res_filename(key, base_filename='strings.xml'):
@@ -43,17 +54,17 @@ def _ios_res_filename(key, base_filename='i18n.strings'):
         return base_filename
 
     ios_key = re.sub(r'[^A-Za-z0-9]+', r'_', key)
-    split_key = re.split(r'_(\w)', ios_key[0].upper()+ios_key[1:])
+    split_key = re.split(r'_(\w)', ios_key[0].upper() + ios_key[1:])
     ios_key = ''.join([odd(i) and s.upper() or s for i, s in enumerate(split_key)])
     return re.sub(r'([^\.]*)(\.?.*)', r'\1{}\2'.format(ios_key), base_filename)
 
 
 def _escape_android_string(s):
 
-    def escape_chars(string):
+    def escape_chars(text):
         new_android_chars = []
-        for c in string:
-            if c in ("'",  '"', u'’'):
+        for c in text:
+            if c in ("'", '"', u'’'):
                 new_c = '\\' + c
             else:
                 if c == '\n':
@@ -80,9 +91,9 @@ def _escape_android_string(s):
 
 def _escape_ios_string(s):
 
-    def escape_chars(string):
+    def escape_chars(text):
         new_ios_chars = []
-        for c in string:
+        for c in text:
             if c in ('"',):
                 new_c = '\\' + c
             else:
@@ -147,7 +158,8 @@ class IOSResourceWriter(object):
         return _ios_res_filename
 
     def write_header(self, lang):
-        self.out_file.write(u'// Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
+        self.out_file.write(
+            u'// Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
 
     def write_comment(self, comment):
         self.out_file.write(u'\n// {}\n'.format(comment))
@@ -163,7 +175,6 @@ class IOSResourceWriter(object):
 
 def _export_lang_file(
         language, from_language, wordings, res_dir, res_filename, writer_type, split_files):
-
     lang_dirname = writer_type.get_lang_dirname(language).format(language)
     res_lang_dir_path = os.path.join(res_dir, lang_dirname)
 
@@ -171,8 +182,8 @@ def _export_lang_file(
         makedirs(res_lang_dir_path)
 
     f = codecs.open(os.path.join(res_lang_dir_path, res_filename), 'w', 'utf-8')
+    writer = writer_type(f)
     try:
-        writer = writer_type(f)
         writer.write_header(language)
 
         for wording in wordings:
@@ -180,7 +191,8 @@ def _export_lang_file(
                 if split_files:
                     writer.write_footer()
                     f.close()
-                    new_filename = writer_type.get_res_filename_converter()(wording.key, res_filename)
+                    new_filename = writer_type.get_res_filename_converter()(wording.key,
+                                                                            res_filename)
                     f = codecs.open(os.path.join(res_lang_dir_path, new_filename), 'w', 'utf-8')
                     writer = writer_type(f)
                     writer.write_header(language)
@@ -204,14 +216,12 @@ def _export_languages(languages, wordings, res_dir, res_filename, writer_type, s
 def write_android_strings(languages, wordings, res_dir,
                           res_filename='strings.xml',
                           split_files=False):
-
     _export_languages(languages, wordings, res_dir, res_filename, ANDResourceWriter, split_files)
 
 
 def write_ios_strings(languages, wordings, res_dir,
                       res_filename='i18n.strings',
                       split_files=False):
-
     _export_languages(languages, wordings, res_dir, res_filename, IOSResourceWriter, split_files)
 
 
@@ -227,6 +237,7 @@ def write_json(languages, wordings, file_or_path, indent=2):
             _json_dump(languages, wordings, f, indent)
 
 
+# noinspection PyProtectedMember
 def _write_csv(languages, wordings, file_obj, format_specs):
     """
     :param languages: list(str)

@@ -146,7 +146,7 @@ def _wordings_generator(languages, reader, specs):
                     zip(languages, [v for v in row_values[specs.translations_start_col:]]))
             )
 
-        yield w
+            yield w
 
 
 def group_wordings_by_comment_key(wordings):

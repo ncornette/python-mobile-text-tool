@@ -17,53 +17,82 @@ __author__ = 'nic'
 class MyTestCase(unittest.TestCase):
 
     def test_tokens_android_generic(self):
-        self.assertEqual("blablabla", text_out._escape_android_string("blablabla"))
-        self.assertEqual("bla %s blabla", text_out._escape_android_string("bla {} blabla"))
-        self.assertEqual("bla %s bla %s bla", text_out._escape_android_string("bla {} bla {} bla"))
-        self.assertEqual("bla %1$s bla %2$s bla", text_out._escape_android_string("bla {1} bla {2} bla"))
-        self.assertEqual("bla %2$s bla %1$s bla", text_out._escape_android_string("bla {2} bla {1} bla"))
+        self.assertEqual("blablabla",
+                         text_out._escape_android_string("blablabla"))
+        self.assertEqual("bla %s blabla",
+                         text_out._escape_android_string("bla {} blabla"))
+        self.assertEqual("bla %s bla %s bla",
+                         text_out._escape_android_string("bla {} bla {} bla"))
+        self.assertEqual("bla %1$s bla %2$s bla",
+                         text_out._escape_android_string("bla {1} bla {2} bla"))
+        self.assertEqual("bla %2$s bla %1$s bla",
+                         text_out._escape_android_string("bla {2} bla {1} bla"))
 
     def test_replace_tokens_ios(self):
-        self.assertEqual("blablabla", text_out._escape_ios_string("blablabla"))
-        self.assertEqual("bla %@ blabla", text_out._escape_ios_string("bla {} blabla"))
-        self.assertEqual("bla %@ bla %@ bla", text_out._escape_ios_string("bla {} bla {} bla"))
-        self.assertEqual("bla %1$@ bla %2$@ bla", text_out._escape_ios_string("bla {1} bla {2} bla"))
-        self.assertEqual("bla %2$@ bla %1$@ bla", text_out._escape_ios_string("bla {2} bla {1} bla"))
+        self.assertEqual("blablabla",
+                         text_out._escape_ios_string("blablabla"))
+        self.assertEqual("bla %@ blabla",
+                         text_out._escape_ios_string("bla {} blabla"))
+        self.assertEqual("bla %@ bla %@ bla",
+                         text_out._escape_ios_string("bla {} bla {} bla"))
+        self.assertEqual("bla %1$@ bla %2$@ bla",
+                         text_out._escape_ios_string("bla {1} bla {2} bla"))
+        self.assertEqual("bla %2$@ bla %1$@ bla",
+                         text_out._escape_ios_string("bla {2} bla {1} bla"))
 
     def test_escape_android(self):
-        self.assertEqual(ur"""&lt; &gt; &amp; %% %% \' \" \’ \n \t \r \f""", text_out._escape_android_string(
-                u'< > & % %% \' " ’ \n \t \r \f'))
-
-        self.assertEqual("%%10 bla 10%% bla 10%%", text_out._escape_android_string("%10 bla 10% bla 10%"))
-        self.assertEqual("%%10 bla 10%% bla 10%%", text_out._escape_android_string("%%10 bla 10%% bla 10%%"))
+        self.assertEqual(ur"""&lt; &gt; &amp; %% %% \' \" \’ \n \t \r \f""",
+                         text_out._escape_android_string(u'< > & % %% \' " ’ \n \t \r \f'))
+        self.assertEqual("%%10 bla 10%% bla 10%%",
+                         text_out._escape_android_string("%10 bla 10% bla 10%"))
+        self.assertEqual("%%10 bla 10%% bla 10%%",
+                         text_out._escape_android_string("%%10 bla 10%% bla 10%%"))
 
     def test_escape_ios(self):
-        self.assertEqual(ur"""< > & % %% ' \" ’ \n \t \r \f""", text_out._escape_ios_string(
-                u"< > & % %% ' \" ’ \n \t \r \f"))
-
-        self.assertEqual("%10 bla 10% bla 10%", text_out._escape_ios_string("%10 bla 10% bla 10%"))
-        self.assertEqual("%%10 bla 10%% bla 10%%", text_out._escape_ios_string("%%10 bla 10%% bla 10%%"))
+        self.assertEqual(ur"""< > & % %% ' \" ’ \n \t \r \f""",
+                         text_out._escape_ios_string(u"< > & % %% ' \" ’ \n \t \r \f"))
+        self.assertEqual("%10 bla 10% bla 10%",
+                         text_out._escape_ios_string("%10 bla 10% bla 10%"))
+        self.assertEqual("%%10 bla 10%% bla 10%%",
+                         text_out._escape_ios_string("%%10 bla 10%% bla 10%%"))
 
     def test_resname_android(self):
-        self.assertEqual('strings.xml', text_out._android_res_filename(''))
-        self.assertEqual('strings_spam.xml', text_out._android_res_filename('spam'))
-        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam_eggs'))
-        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam.eggs'))
-        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam&eggs'))
-        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spamEggs'))
-        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam_Eggs'))
-        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam Eggs'))
+        self.assertEqual('strings.xml',
+                         text_out._android_res_filename(''))
+        self.assertEqual('strings_spam.xml',
+                         text_out._android_res_filename('spam'))
+        self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename('spam_eggs'))
+        self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename('spam.eggs'))
+        self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename('spam&eggs'))
+        self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename('spamEggs'))
+        self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename('spam_Eggs'))
+        self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename('spam Eggs'))
 
     def test_resname_ios(self):
-        self.assertEqual('i18n.strings', text_out._ios_res_filename(''))
-        self.assertEqual('i18nSpam.strings', text_out._ios_res_filename('spam'))
-        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam.eggs'))
-        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam_eggs'))
-        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam&eggs'))
-        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam._eggs'))
-        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spamEggs'))
-        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam Eggs'))
-        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam eggs'))
+        self.assertEqual('i18n.strings',
+                         text_out._ios_res_filename(''))
+        self.assertEqual('i18nSpam.strings',
+                         text_out._ios_res_filename('spam'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename('spam.eggs'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename('spam_eggs'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename('spam&eggs'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename('spam._eggs'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename('spamEggs'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename('spam Eggs'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename('spam eggs'))
 
     def test_read(self):
         _, wordings = text_in.read_file('test_translations.xlsx')
@@ -216,9 +245,11 @@ class MyTestCase(unittest.TestCase):
 
     def test_convert_test_input(self):
         languages, wordings = text_in.read_excel('test_translations.xlsx')
+
         text_out.write_file(languages, wordings, './test_translations.csv')
         self.assertTrue(os.path.exists('./test_translations.csv'))
         self.assertGreater(os.stat('./test_translations.csv').st_size, 0)
+
         text_out.write_file(languages, wordings, './test_translations.json')
         self.assertTrue(os.path.exists('./test_translations.json'))
         self.assertGreater(os.stat('./test_translations.json').st_size, 0)
@@ -239,8 +270,9 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual({'a.0': [1, 5]}, duplicates)
 
         grouped_wordings = text_in.unique_wordings_overwrite(wordings)
-        self.assertEqual('SECTION.A a.0 SECTION.B b.0 b.1 SECTION.A a.2 empty.line x.0 empty.line x.1',
-                         ' '.join(w.key for w in grouped_wordings))
+        self.assertEqual(
+                'SECTION.A a.0 SECTION.B b.0 b.1 SECTION.A a.2 empty.line x.0 empty.line x.1',
+                ' '.join(w.key for w in grouped_wordings))
 
     def test_unique_sections(self):
         w = text_in.Wording
@@ -256,7 +288,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual({'SECTION.A': [1, 7]}, duplicates)
 
         grouped_wordings = text_in.group_wordings_by_comment_key(wordings)
-        self.assertEqual('___ SECTION.A a.0 a1 SECTION.B b.0 b.1 SECTION.C', ' '.join(w.key for w in grouped_wordings))
+        self.assertEqual('___ SECTION.A a.0 a1 SECTION.B b.0 b.1 SECTION.C',
+                         ' '.join(w.key for w in grouped_wordings))
 
     def test_trim(self):
         w = text_in.Wording
@@ -275,7 +308,8 @@ class MyTestCase(unittest.TestCase):
 
     def test_collection_utils(self):
         range_g = (v for v in range(10))
-        self.assertEquals('[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]', json.dumps(range_g, cls=StreamArrayJSONEncoder))
+        self.assertEquals('[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]',
+                          json.dumps(range_g, cls=StreamArrayJSONEncoder))
         self.assertEquals('[]', json.dumps(range_g, cls=StreamArrayJSONEncoder))
 
         Foo = namedtuple_with_defaults("Foo", 'name', dict(name="bar"))
