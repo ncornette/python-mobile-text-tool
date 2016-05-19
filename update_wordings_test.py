@@ -44,6 +44,27 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual("%10 bla 10% bla 10%", text_out._escape_ios_string("%10 bla 10% bla 10%"))
         self.assertEqual("%%10 bla 10%% bla 10%%", text_out._escape_ios_string("%%10 bla 10%% bla 10%%"))
 
+    def test_resname_android(self):
+        self.assertEqual('strings.xml', text_out._android_res_filename(''))
+        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam_eggs'))
+        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam.eggs'))
+        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam&eggs'))
+        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spamEggs'))
+        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam_Eggs'))
+        self.assertEqual('strings_spam_eggs.xml', text_out._android_res_filename('spam Eggs'))
+        self.assertEqual('strings_spam.xml', text_out._android_res_filename('spam'))
+
+    def test_resname_ios(self):
+        self.assertEqual('i18n.strings', text_out._ios_res_filename(''))
+        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam.eggs'))
+        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam_eggs'))
+        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam&eggs'))
+        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam._eggs'))
+        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spamEggs'))
+        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam Eggs'))
+        self.assertEqual('i18nSpamEggs.strings', text_out._ios_res_filename('spam eggs'))
+        self.assertEqual('i18nSpam.strings', text_out._ios_res_filename('spam'))
+
     def test_read(self):
         _, wordings = text_in.read_file('test_translations.xlsx')
         wordings_from_xlsx = text_in.trimmed(wordings)
@@ -94,15 +115,11 @@ class MyTestCase(unittest.TestCase):
         self.assertFalse(next_wording.is_comment)
         self.assertEqual(next_wording.translations['sv'], u'Dela')
 
-    def test_export_import(self):
+    def test_export_android(self):
 
         android_target = 'test-out/android'
-        ios_target = 'test-out/ios'
 
         shutil.rmtree(android_target, True)
-        shutil.rmtree(ios_target, True)
-
-        # EXPORT
 
         languages, wordings_from_xlsx = text_in.read_excel('test_translations.xlsx')
 
@@ -115,6 +132,14 @@ class MyTestCase(unittest.TestCase):
                                       '  <!-- comment.section - This is a section -->\n'
                                       '  <string name="menu_contact">Contato</string>', content))
 
+    def test_export_ios(self):
+
+        ios_target = 'test-out/ios'
+
+        shutil.rmtree(ios_target, True)
+
+        languages, wordings_from_xlsx = text_in.read_excel('test_translations.xlsx')
+
         pt_br_ios_file_path = os.path.join(ios_target, 'pt_BR.lproj', 'i18n.strings')
         text_out.write_ios_strings(languages, wordings_from_xlsx, ios_target)
         self.assertTrue(os.path.exists(pt_br_ios_file_path))
@@ -123,6 +148,10 @@ class MyTestCase(unittest.TestCase):
             self.assertTrue(re.search('\n'
                                       '//comment.section - This is a section\n'
                                       '"menu.contact"="Contato";\n', content))
+
+    def test_export_import(self):
+
+        languages, wordings_from_xlsx = text_in.read_excel('test_translations.xlsx')
 
         text_out.write_csv(languages, wordings_from_xlsx, 'test-out/wordings.csv')
         text_out.write_json(languages, wordings_from_xlsx, 'test-out/wordings.json')

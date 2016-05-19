@@ -28,8 +28,24 @@ single_percent = re.compile('(^|[^%])%([^%]|$)')
 double_percent = lambda s: single_percent.sub('\\1%%\\2', s)
 
 
-def _to_android_res_name(s):
-    return re.sub(r'([A-Z])', r'_\1', re.sub(r'[^A-Z_a-z_0-9]', r'_', s)).lower()
+def _android_res_filename(key, base_filename='strings.xml'):
+    if not key:
+        return base_filename
+
+    android_key = re.sub(r'[^A-Za-z0-9_]', r'_', key)
+    android_key = re.sub(r'([A-Z])', r'_\1', android_key).lower()
+    android_key = re.sub(r'_{2,}', r'_', android_key).lower()
+    return re.sub(r'([^\.]*)(\.?.*)', r'\1_{}\2'.format(android_key), base_filename)
+
+
+def _ios_res_filename(key, base_filename='i18n.strings'):
+    if not key:
+        return base_filename
+
+    ios_key = re.sub(r'[^A-Za-z0-9]+', r'_', key)
+    split_key = re.split(r'_(\w)', ios_key[0].upper()+ios_key[1:])
+    ios_key = ''.join([odd(i) and s.upper() or s for i, s in enumerate(split_key)])
+    return re.sub(r'([^\.]*)(\.?.*)', r'\1{}\2'.format(ios_key), base_filename)
 
 
 def _escape_android_string(s):
@@ -98,6 +114,10 @@ class AndroidResourceWriter(object):
     def get_lang_dirname(lang):
         return 'values' + (lang and '-' + '-r'.join(lang.split('_')))
 
+    @staticmethod
+    def get_res_filename_converter():
+        return _android_res_filename
+
     def write_header(self, lang):
         self.out_file.write(u'<?xml version="1.0" encoding="UTF-8"?>\n<resources>\n')
 
@@ -120,6 +140,10 @@ class IOSResourceWriter(object):
     @staticmethod
     def get_lang_dirname(lang):
         return '{}.lproj'.format(lang)
+
+    @staticmethod
+    def get_res_filename_converter():
+        return _ios_res_filename
 
     def write_header(self, lang):
         self.out_file.write(u'//Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
@@ -154,9 +178,7 @@ def _export_lang_file(language, from_language, wordings, res_dir, res_filename, 
                 if split_files:
                     writer.write_footer()
                     f.close()
-                    new_filename = re.sub(r'([^\.]*)(\.?.*)',
-                                          r'\1_{}\2'.format(
-                                                  _to_android_res_name(wording.key)), res_filename)
+                    new_filename = writer_type.get_res_filename_converter()(wording.key, res_filename)
                     f = codecs.open(os.path.join(res_lang_dir_path, new_filename), 'w', 'utf-8')
                     writer = writer_type(f)
                     writer.write_header(language)
