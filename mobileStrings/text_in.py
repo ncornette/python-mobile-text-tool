@@ -229,7 +229,7 @@ def read_csv(file_path, rows_format_specs=default_format_specs):
     return languages, list(wordings)
 
 
-def read_file(file_path, rows_format_specs=default_format_specs, prefer_generator=True):
+def read_file(file_path, rows_format_specs=default_format_specs, prefer_generator=True, xl_sheet=0):
 
     _, ext = os.path.splitext(file_path.lower())
 
@@ -240,6 +240,6 @@ def read_file(file_path, rows_format_specs=default_format_specs, prefer_generato
         return read(file_path, rows_format_specs)
     elif ext.startswith('.xls'):
         read = iread_excel if prefer_generator else read_excel
-        return read(file_path, rows_format_specs)
+        return read(file_path, rows_format_specs, xl_sheet)
     else:
         raise AttributeError("Unknown file type: " + ext)

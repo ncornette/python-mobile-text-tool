@@ -23,6 +23,8 @@ def get_parsed_arguments(output_required=True):
     args_parser.add_argument('-s', '--split-files', default=False, action='store_true',
                              help="Export sections as separate ios and android resource files, "
                                   "comment key is used for naming new files")
+    args_parser.add_argument('-w', '--work-sheet', default=0,
+                             help="Excel worksheet reference, can be index or name (Int or String)")
     parsed_args = args_parser.parse_args()
 
     if output_required and \
@@ -46,7 +48,8 @@ def save_from_output_args(args, languages, wordings):
 
 def main():
     args = get_parsed_arguments()
-    languages, wordings = mobileStrings.text_in.read_file(args.input_file, prefer_generator=False)
+    languages, wordings = mobileStrings.text_in.read_file(
+            args.input_file, prefer_generator=False, xl_sheet=args.work_sheet)
     save_from_output_args(args, languages, wordings)
 
 
