@@ -64,6 +64,6 @@ class UnicodeWriter:
         # empty queue
         self.queue.truncate(0)
 
-    def writerows(self, rows):
+    def writerows(self, rows):  # pragma: no cover
         for row in rows:
             self.writerow(row)

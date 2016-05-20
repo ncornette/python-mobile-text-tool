@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 # coding=utf-8
+from StringIO import StringIO
 from collections import OrderedDict
 import shutil
 import re
 from mobileStrings import text_out
+from mobileStrings import csv_unicode
 from mobileStrings import text_in
 from mobileStrings.collection_utils import namedtuple_with_defaults
 from mobileStrings.collection_utils import StreamArrayJSONEncoder
@@ -240,6 +242,13 @@ class MyTestCase(unittest.TestCase):
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_json)
 
+    def test_csv_linefeed(self):
+        sio = StringIO("1,2,3,4,5\naaa,bbb,ccc,d\ndd,eee")
+        result = [l for l in csv_unicode.UnicodeReader(sio)]
+        self.assertEqual(
+                [[u'1', u'2', u'3', u'4', u'5'], [u'aaa', u'bbb', u'ccc', u'd\ndd', u'eee']],
+                result)
+
     def test_convert_test_input(self):
         languages, wordings = text_in.read_excel('test_translations.xlsx')
 
@@ -305,35 +314,35 @@ class MyTestCase(unittest.TestCase):
 
     def test_collection_utils(self):
         range_g = (v for v in range(10))
-        self.assertEquals('[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]',
+        self.assertEqual('[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]',
                           json.dumps(range_g, cls=StreamArrayJSONEncoder))
-        self.assertEquals('[]', json.dumps(range_g, cls=StreamArrayJSONEncoder))
+        self.assertEqual('[]', json.dumps(range_g, cls=StreamArrayJSONEncoder))
 
         Foo = namedtuple_with_defaults("Foo", 'name', dict(name="bar"))
 
-        self.assertEquals("bar", Foo().name)
-        self.assertEquals("blaz", Foo('blaz').name)
-        self.assertEquals("holy", Foo(name='holy').name)
+        self.assertEqual("bar", Foo().name)
+        self.assertEqual("blaz", Foo('blaz').name)
+        self.assertEqual("holy", Foo(name='holy').name)
 
         Foo = namedtuple_with_defaults("Foo", 'name', dict(name="bar"))
 
-        self.assertEquals("bar", Foo().name)
-        self.assertEquals("blaz", Foo('blaz').name)
-        self.assertEquals("holy", Foo(name='holy').name)
+        self.assertEqual("bar", Foo().name)
+        self.assertEqual("blaz", Foo('blaz').name)
+        self.assertEqual("holy", Foo(name='holy').name)
 
         Foo = namedtuple_with_defaults("Foo", 'name grail', dict(name="bar"))
 
-        self.assertEquals("bar", Foo().name)
-        assert Foo().grail is None
-        self.assertEquals(True, Foo('blaz', True).grail)
-        self.assertEquals("holy", Foo(name='holy').name)
+        self.assertEqual("bar", Foo().name)
+        self.assertIsNone(Foo().grail)
+        self.assertEqual(True, Foo('blaz', True).grail)
+        self.assertEqual("holy", Foo(name='holy').name)
 
         Foo = namedtuple_with_defaults("Foo", 'name grail', dict(name="bar"))
 
-        self.assertEquals("bar", Foo().name)
-        assert Foo().grail is None
-        self.assertEquals(True, Foo('blaz', True).grail)
-        self.assertEquals("holy", Foo(name='holy').name)
+        self.assertEqual("bar", Foo().name)
+        self.assertIsNone(Foo().grail)
+        self.assertEqual(True, Foo('blaz', True).grail)
+        self.assertEqual("holy", Foo(name='holy').name)
 
 
 if __name__ == '__main__':
