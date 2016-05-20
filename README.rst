@@ -35,10 +35,10 @@ CLI
 
    $ update_wordings --help
    usage: update_wordings [-h] [-o [OUT_FILE [OUT_FILE ...]]]
-                          [-a ANDROID_RES_DIR] [-i IOS_RES_DIR]
-                          [--android-resname ANDROID_RESNAME]
-                          [--ios-resname IOS_RESNAME] [-s]
-                          input_file
+                             [-a ANDROID_RES_DIR] [-i IOS_RES_DIR]
+                             [--android-resname ANDROID_RESNAME]
+                             [--ios-resname IOS_RESNAME] [-s] [-w WORK_SHEET]
+                             input_file
    
    Export wordings for Android & IOS.
    
@@ -59,7 +59,10 @@ CLI
                            filename for ios resource (default: i18n.strings)
      -s, --split-files     Export sections as separate ios and android resource
                            files, comment key is used for naming new files
-                           (default: False)   
+                           (default: False)
+     -w WORK_SHEET, --work-sheet WORK_SHEET
+                           Excel worksheet reference, can be index or name (Int
+                           or String) (default: 0)
 
 To generate translations for android and ios from ``.xlsx`` file :
 
