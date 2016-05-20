@@ -48,8 +48,15 @@ def save_from_output_args(args, languages, wordings):
 
 def main():
     args = get_parsed_arguments()
+
+    sheet_ref = args.work_sheet
+    try:
+        sheet_ref = int(args.work_sheet)
+    except ValueError:
+        pass
+
     languages, wordings = mobileStrings.text_in.read_file(
-            args.input_file, prefer_generator=False, xl_sheet=args.work_sheet)
+            args.input_file, prefer_generator=False, xl_sheet=sheet_ref)
     save_from_output_args(args, languages, wordings)
 
 
