@@ -14,7 +14,8 @@ import json
 import os
 import unittest
 
-from mobileStrings.text_in import read_row_format_config, default_format_specs, _bool_value
+from mobileStrings.text_in import read_row_format_config, default_format_specs, _bool_value, \
+    FormatSpec
 
 __author__ = 'nic'
 
@@ -245,6 +246,34 @@ class MyTestCase(unittest.TestCase):
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_json)
 
+    def test_export_import_custom(self):
+
+        custom_format = FormatSpec(excel_sheet_reference='test_translations',
+                                   key_col=0, exportable_col=1, is_comment_col=2,
+                                   comment_col=0, translations_start_col=5,
+                                   exportable_value=None, is_comment_value=None,
+                                   metadata_cols={'foo': 4})
+
+        languages, wordings_from_xlsx = text_in.read_excel('./test-data/test_translations.xlsx',
+                                                           custom_format)
+
+        text_out.write_csv(languages, wordings_from_xlsx, 'test-out/wordings_custom.csv',
+                           custom_format)
+        text_out.write_json(languages, wordings_from_xlsx, 'test-out/wordings_custom.json')
+
+        # READ AND COMPARE
+
+        languages, wordings_from_json = text_in.read_file('test-out/wordings_custom.json')
+        text_in.trimmed(wordings_from_json)
+
+        languages, wordings_from_csv = text_in.read_file('test-out/wordings_custom.csv',
+                                                         custom_format, False)
+        wordings_from_csv = text_in.trimmed(wordings_from_csv)
+
+        self.maxDiff = None
+        self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
+        self.assertItemsEqual(wordings_from_xlsx, wordings_from_json)
+
     def test_csv_linefeed(self):
         sio = StringIO("1,2,3,4,5\naaa,bbb,ccc,d\ndd,eee")
         result = [l for l in csv_unicode.UnicodeReader(sio)]
@@ -299,6 +328,25 @@ class MyTestCase(unittest.TestCase):
         grouped_wordings = text_in.group_wordings_by_comment_key(wordings)
         self.assertEqual('___ SECTION.A a.0 a1 SECTION.B b.0 b.1 SECTION.C',
                          ' '.join(w.key for w in grouped_wordings))
+
+    def test_unique_sections_and_keys(self):
+        w = text_in.Wording
+        wordings = [
+            w(key='___'),
+            w(key='SECTION.A', is_comment=True), w(key='a.0'),
+            w(key='SECTION.B', is_comment=True), w(key='b.0'), w(key='b.1'),
+            w(key='SECTION.C', is_comment=True), w(key='b.0'),
+            w(key='SECTION.A', is_comment=True), w(key='a1'),
+        ]
+
+        fixed = text_in.fix_duplicates(wordings)
+
+        self.assertEqual([
+            w(key='___'),
+            w(key='SECTION.A', is_comment=True), w(key='a.0'), w(key='a1'),
+            w(key='SECTION.B', is_comment=True), w(key='b.0'), w(key='b.1'),
+            w(key='SECTION.C', is_comment=True)
+        ], fixed)
 
     def test_trim(self):
         w = text_in.Wording
