@@ -75,16 +75,6 @@ def _get_excel_openpyxl_rows(file_path, sheet=0, translations_start_col=-1):
         yield [v.value and v.value.replace(u'\u2028', '\n') or '' for v in row]
 
 
-def _get_excel_xlrd_rows(file_path, sheet=0, translations_start_col=-1):
-    import xlrd
-
-    book = xlrd.open_workbook(file_path)
-    sheet = book.sheets()[sheet]
-    for row_index in range(sheet.nrows):
-        row = sheet.row_values(row_index)
-        yield row
-
-
 def _check_duplicates(wordings, condition=lambda w: w.exportable and not w.is_comment,
                       message='ERROR: Duplicate key entry: "'):
     duplicate_keys = collections.defaultdict(lambda: [])
