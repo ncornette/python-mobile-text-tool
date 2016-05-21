@@ -37,7 +37,7 @@ CLI
    usage: update_wordings [-h] [-o [OUT_FILE [OUT_FILE ...]]]
                              [-a ANDROID_RES_DIR] [-i IOS_RES_DIR]
                              [--android-resname ANDROID_RESNAME]
-                             [--ios-resname IOS_RESNAME] [-s] [-w WORK_SHEET]
+                             [--ios-resname IOS_RESNAME] [-s] [-f FORMAT_CONFIG]
                              input_file
    
    Export wordings for Android & IOS.
@@ -52,7 +52,7 @@ CLI
      -a ANDROID_RES_DIR, --android_res_dir ANDROID_RES_DIR
                            resource directory for android strings (default: None)
      -i IOS_RES_DIR, --ios_res_dir IOS_RES_DIR
-                           resource directory for android strings (default: None)
+                           resource directory for ios strings (default: None)
      --android-resname ANDROID_RESNAME
                            filename for android resource (default: strings.xml)
      --ios-resname IOS_RESNAME
@@ -60,9 +60,26 @@ CLI
      -s, --split-files     Export sections as separate ios and android resource
                            files, comment key is used for naming new files
                            (default: False)
-     -w WORK_SHEET, --work-sheet WORK_SHEET
-                           Excel worksheet reference, can be index or name (Int
-                           or String) (default: 0)
+     -f FORMAT_CONFIG, --format-config FORMAT_CONFIG
+                           excel and csv format specifications config file
+                           (default: None)
+
+
+Default csv and xls format specification configuration :
+
+::
+
+   {
+     "excel_sheet_reference": 0,
+     "key_col": 0,
+     "exportable_col": 1,
+     "is_comment_col": 2,
+     "comment_col": 3,
+     "translations_start_col": 4,
+     "exportable_value": null,
+     "is_comment_value": null,
+     "metadata_cols": {}
+   }
 
 To generate translations for android and ios from ``.xlsx`` file :
 
@@ -76,6 +93,7 @@ filename :
 ::
 
     $ update_wordings my_wordings.json -a out/android --android-resname my_strings.xml
+
 
 Python interface
 ----------------
