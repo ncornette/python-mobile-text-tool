@@ -67,7 +67,7 @@ CLI
 
 Default csv and xls format specification configuration :
 
-::
+.. code:: json
 
    {
      "excel_sheet_reference": 0,
