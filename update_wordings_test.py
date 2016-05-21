@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
+
 from StringIO import StringIO
 from collections import OrderedDict
 import shutil
@@ -12,6 +13,8 @@ from mobileStrings.collection_utils import StreamArrayJSONEncoder
 import json
 import os
 import unittest
+
+from mobileStrings.text_in import read_row_format_config, default_format_specs
 
 __author__ = 'nic'
 
@@ -343,6 +346,17 @@ class MyTestCase(unittest.TestCase):
         self.assertIsNone(Foo().grail)
         self.assertEqual(True, Foo('blaz', True).grail)
         self.assertEqual("holy", Foo(name='holy').name)
+
+    def test_keys_in_fields(self):
+        def are_keys_from_list(dct, fields):
+            return len([k for k, v in dct if k in fields]) == len(dct)
+
+        self.assertTrue(are_keys_from_list([['aa', '1'], ['bb', '2'], ['cc', '3']], ['aa', 'bb', 'cc', 'dd']))
+        self.assertFalse(are_keys_from_list([['aa', '1'], ['bb', '2'], ['cc', '3']], ['aa', 'bb']))
+
+    def test_read_config(self):
+        config = read_row_format_config('test_config_default.json')
+        self.assertEqual(default_format_specs, config)
 
 
 if __name__ == '__main__':

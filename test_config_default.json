@@ -1,0 +1,11 @@
+{
+  "excel_sheet_reference": 0,
+  "key_col": 0,
+  "exportable_col": 1,
+  "is_comment_col": 2,
+  "comment_col": 3,
+  "translations_start_col": 4,
+  "exportable_value": null,
+  "is_comment_value": null,
+  "metadata_cols": {}
+}

@@ -24,16 +24,18 @@ Wording = namedtuple_with_defaults("Wording", """\
                                          metadata=OrderedDict(), translations=OrderedDict()))
 
 FormatSpec = namedtuple_with_defaults('FormatSpec', """\
+    excel_sheet_reference,
     key_col,
     exportable_col,
     is_comment_col,
     comment_col,
     translations_start_col,
-    exportable_rule,
-    is_comment_rule,
-    metadata_cols""", default_values=dict(key_col=0, exportable_col=1, is_comment_col=2,
+    exportable_value,
+    is_comment_value,
+    metadata_cols""", default_values=dict(excel_sheet_reference=0,
+                                          key_col=0, exportable_col=1, is_comment_col=2,
                                           comment_col=3, translations_start_col=4,
-                                          exportable_rule=bool, is_comment_rule=bool,
+                                          exportable_value=None, is_comment_value=None,
                                           metadata_cols={}))
 
 default_format_specs = FormatSpec()
@@ -134,13 +136,17 @@ def _read_rows(reader, specs=default_format_specs):
 
 
 def _wordings_generator(languages, reader, specs):
+
+    exportable_rule = bool if not specs.exportable_value else lambda s: s == specs.exportable_value
+    is_comment_rule = bool if not specs.is_comment_value else lambda s: s == specs.is_comment_value
+
     for row_values in reader:
         if row_values:
             w = Wording(
                 key=row_values[specs.key_col].strip(),
-                exportable=specs.exportable_rule(row_values[specs.exportable_col]),
+                exportable=exportable_rule(row_values[specs.exportable_col]),
                 comment=row_values[specs.comment_col],
-                is_comment=specs.is_comment_rule(row_values[specs.is_comment_col]),
+                is_comment=is_comment_rule(row_values[specs.is_comment_col]),
                 metadata=OrderedDict(((k, row_values[v]) for k, v in specs.metadata_cols.items())),
                 translations=OrderedDict(
                     zip(languages, [v for v in row_values[specs.translations_start_col:]]))
@@ -188,13 +194,17 @@ def unique_wordings_overwrite(wordings):
     return new_wordings.values()
 
 
+def are_keys_from_list(dct, fields):
+    return len([k for k, v in dct if k in fields]) == len(dct)
+
+
 def _object_hook(dct):
     if dct:
-        if re.match('^key,.*,translations$', ','.join(d[0] for d in dct)):
-            return Wording(**dict((k, v) for k, v in dct if k in Wording._fields))
+        if are_keys_from_list(dct, Wording._fields):
+            return Wording(**dict(dct))
 
-        if re.match('^languages,wordings$', ','.join(d[0] for d in dct)):
-            return Wordings(**dict((k, v) for k, v in dct if k in Wordings._fields))
+        if are_keys_from_list(dct, Wordings._fields):
+            return Wordings(**dict(dct))
 
     return OrderedDict(dct)
 
@@ -211,12 +221,16 @@ def read_json(file_or_path):
             return _read_json(f)
 
 
-def iread_excel(file_path, rows_format_specs=default_format_specs, sheet=0):
-    return _read_rows(_get_excel_rows(file_path, rows_format_specs.translations_start_col, sheet), rows_format_specs)
+def iread_excel(file_path, rows_format_specs=default_format_specs):
+    return _read_rows(
+            _get_excel_rows(file_path,
+                            rows_format_specs.translations_start_col,
+                            rows_format_specs.excel_sheet_reference),
+            rows_format_specs)
 
 
-def read_excel(file_path, rows_format_specs=default_format_specs, sheet=0):
-    languages, wordings = iread_excel(file_path, rows_format_specs, sheet)
+def read_excel(file_path, rows_format_specs=default_format_specs):
+    languages, wordings = iread_excel(file_path, rows_format_specs)
     return languages, list(wordings)
 
 
@@ -229,7 +243,21 @@ def read_csv(file_path, rows_format_specs=default_format_specs):
     return languages, list(wordings)
 
 
-def read_file(file_path, rows_format_specs=default_format_specs, prefer_generator=True, xl_sheet=0):
+def _config_object_pairs_hook(dct):
+    if dct and are_keys_from_list(dct, FormatSpec._fields):
+        return FormatSpec(**dict(dct))
+    return OrderedDict(dct)
+
+
+def read_row_format_config(config_file):
+    rows_format_specs = default_format_specs
+    if config_file:
+        with open(config_file, 'r') as f:
+            rows_format_specs = json.load(f, object_pairs_hook=_config_object_pairs_hook)
+    return rows_format_specs
+
+
+def read_file(file_path, rows_format_specs=default_format_specs, prefer_generator=True):
 
     _, ext = os.path.splitext(file_path.lower())
 
@@ -240,6 +268,6 @@ def read_file(file_path, rows_format_specs=default_format_specs, prefer_generato
         return read(file_path, rows_format_specs)
     elif ext.startswith('.xls'):
         read = iread_excel if prefer_generator else read_excel
-        return read(file_path, rows_format_specs, xl_sheet)
+        return read(file_path, rows_format_specs)
     else:
         raise AttributeError("Unknown file type: " + ext)
