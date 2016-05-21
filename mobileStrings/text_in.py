@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # coding=utf-8
-import re
+
 from collections import namedtuple, OrderedDict
 import simplejson as json
 import collections

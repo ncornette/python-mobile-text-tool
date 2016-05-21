@@ -2,13 +2,9 @@
 # coding=utf-8
 
 import argparse
-from collections import OrderedDict
-
-import simplejson as json
 
 import mobileStrings
-from mobileStrings.text_in import default_format_specs, FormatSpec, are_keys_from_list, \
-    read_row_format_config
+from mobileStrings.text_in import read_row_format_config
 
 
 def get_parsed_arguments(output_required=True):

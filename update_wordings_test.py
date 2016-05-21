@@ -349,7 +349,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_keys_in_fields(self):
         def are_keys_from_list(dct, fields):
-            return len([k for k, v in dct if k in fields]) == len(dct)
+            return len([k for k, _ in dct if k in fields]) == len(dct)
 
         self.assertTrue(are_keys_from_list([['aa', '1'], ['bb', '2'], ['cc', '3']], ['aa', 'bb', 'cc', 'dd']))
         self.assertFalse(are_keys_from_list([['aa', '1'], ['bb', '2'], ['cc', '3']], ['aa', 'bb']))
