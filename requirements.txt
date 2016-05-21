@@ -1,4 +1,3 @@
 xlrd
 openpyxl
-flask
 simplejson>3.8

@@ -4,7 +4,7 @@
 # http://stackoverflow.com/a/18348004
 
 import collections
-from flask.json import JSONEncoder
+from simplejson import JSONEncoder
 
 
 def namedtuple_with_defaults(typename, field_names, default_values=()):
