@@ -100,7 +100,7 @@ class MyTestCase(unittest.TestCase):
                          text_out._ios_res_filename('spam eggs'))
 
     def test_read(self):
-        _, wordings = text_in.read_file('test_translations.xlsx')
+        _, wordings = text_in.read_file('./test-data/test_translations.xlsx')
         wordings_from_xlsx = text_in.trimmed(wordings)
 
         wordings_from_xlsx.next()
@@ -154,7 +154,7 @@ class MyTestCase(unittest.TestCase):
 
         shutil.rmtree(android_target, True)
 
-        languages, wordings_from_xlsx = text_in.read_excel('test_translations.xlsx')
+        languages, wordings_from_xlsx = text_in.read_excel('./test-data/test_translations.xlsx')
 
         text_out.write_android_strings(languages, wordings_from_xlsx, android_target)
         pt_br_android_file_path = os.path.join(android_target, 'values-pt-rBR', 'strings.xml')
@@ -171,7 +171,7 @@ class MyTestCase(unittest.TestCase):
 
         shutil.rmtree(android_target, True)
 
-        languages, wordings_from_xlsx = text_in.read_excel('test_translations.xlsx')
+        languages, wordings_from_xlsx = text_in.read_excel('./test-data/test_translations.xlsx')
 
         text_out.write_android_strings(
                 languages, wordings_from_xlsx, android_target, split_files=True)
@@ -192,7 +192,7 @@ class MyTestCase(unittest.TestCase):
 
         shutil.rmtree(ios_target, True)
 
-        languages, wordings_from_xlsx = text_in.read_excel('test_translations.xlsx')
+        languages, wordings_from_xlsx = text_in.read_excel('./test-data/test_translations.xlsx')
 
         text_out.write_ios_strings(languages, wordings_from_xlsx, ios_target)
 
@@ -211,7 +211,7 @@ class MyTestCase(unittest.TestCase):
 
         shutil.rmtree(ios_target, True)
 
-        languages, wordings_from_xlsx = text_in.read_excel('test_translations.xlsx')
+        languages, wordings_from_xlsx = text_in.read_excel('./test-data/test_translations.xlsx')
 
         text_out.write_ios_strings(
                 languages, wordings_from_xlsx, ios_target, split_files=True)
@@ -228,7 +228,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_export_import(self):
 
-        languages, wordings_from_xlsx = text_in.read_excel('test_translations.xlsx')
+        languages, wordings_from_xlsx = text_in.read_excel('./test-data/test_translations.xlsx')
 
         text_out.write_csv(languages, wordings_from_xlsx, 'test-out/wordings.csv')
         text_out.write_json(languages, wordings_from_xlsx, 'test-out/wordings.json')
@@ -253,15 +253,15 @@ class MyTestCase(unittest.TestCase):
                 result)
 
     def test_convert_test_input(self):
-        languages, wordings = text_in.read_excel('test_translations.xlsx')
+        languages, wordings = text_in.read_excel('./test-data/test_translations.xlsx')
 
-        text_out.write_file(languages, wordings, './test_translations.csv')
-        self.assertTrue(os.path.exists('./test_translations.csv'))
-        self.assertGreater(os.stat('./test_translations.csv').st_size, 0)
+        text_out.write_file(languages, wordings, './test-data/test_translations.csv')
+        self.assertTrue(os.path.exists('./test-data/test_translations.csv'))
+        self.assertGreater(os.stat('./test-data/test_translations.csv').st_size, 0)
 
-        text_out.write_file(languages, wordings, './test_translations.json')
-        self.assertTrue(os.path.exists('./test_translations.json'))
-        self.assertGreater(os.stat('./test_translations.json').st_size, 0)
+        text_out.write_file(languages, wordings, './test-data/test_translations.json')
+        self.assertTrue(os.path.exists('./test-data/test_translations.json'))
+        self.assertGreater(os.stat('./test-data/test_translations.json').st_size, 0)
 
     def test_unique_keys(self):
         w = text_in.Wording
@@ -355,7 +355,7 @@ class MyTestCase(unittest.TestCase):
         self.assertFalse(are_keys_from_list([['aa', '1'], ['bb', '2'], ['cc', '3']], ['aa', 'bb']))
 
     def test_read_config(self):
-        config = read_row_format_config('test_config_default.json')
+        config = read_row_format_config('./test-data/test_config_default.json')
         self.assertEqual(default_format_specs, config)
 
     def test_bool_value(self):
