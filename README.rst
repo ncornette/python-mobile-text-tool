@@ -81,7 +81,7 @@ Default csv and xls format specification configuration :
      "metadata_cols": {}
    }
 
-Default simple csv or xls table :
+Example csv or xls table with default format :
 
 +-----------------+--------------+--------------+--------------+-----------+-----------+--------------+
 | key             | exportable   | is_comment   | comment      | en        | fr        | de           |
