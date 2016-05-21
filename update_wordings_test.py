@@ -4,6 +4,8 @@
 from StringIO import StringIO
 from collections import OrderedDict
 import shutil
+from functools import partial
+
 import re
 from mobileStrings import text_out
 from mobileStrings import csv_unicode
@@ -22,29 +24,35 @@ __author__ = 'nic'
 
 class MyTestCase(unittest.TestCase):
 
-    def test_tokens_android_generic(self):
+    def test_replace_tokens_android(self):
+        android_replace_tokens = partial(text_out.replace_tokens, make_token=text_out.android_token)
+
         self.assertEqual("blablabla",
-                         text_out._escape_android_string("blablabla"))
+                         android_replace_tokens("blablabla"))
         self.assertEqual("bla %s blabla",
-                         text_out._escape_android_string("bla {} blabla"))
+                         android_replace_tokens("bla {} blabla"))
         self.assertEqual("bla %s bla %s bla",
-                         text_out._escape_android_string("bla {} bla {} bla"))
+                         android_replace_tokens("bla {} bla {} bla"))
         self.assertEqual("bla %1$s bla %2$s bla",
-                         text_out._escape_android_string("bla {1} bla {2} bla"))
+                         android_replace_tokens("bla {1} bla {2} bla"))
         self.assertEqual("bla %2$s bla %1$s bla",
-                         text_out._escape_android_string("bla {2} bla {1} bla"))
+                         android_replace_tokens("bla {2} bla {1} bla"))
+
+        self.assertEqual("bla {1} bla {2}", text_out.replace_tokens("bla {1} bla {2}", None))
 
     def test_replace_tokens_ios(self):
+        ios_replace_tokens = partial(text_out.replace_tokens, make_token=text_out.ios_token)
+
         self.assertEqual("blablabla",
-                         text_out._escape_ios_string("blablabla"))
+                         ios_replace_tokens("blablabla"))
         self.assertEqual("bla %@ blabla",
-                         text_out._escape_ios_string("bla {} blabla"))
+                         ios_replace_tokens("bla {} blabla"))
         self.assertEqual("bla %@ bla %@ bla",
-                         text_out._escape_ios_string("bla {} bla {} bla"))
+                         ios_replace_tokens("bla {} bla {} bla"))
         self.assertEqual("bla %1$@ bla %2$@ bla",
-                         text_out._escape_ios_string("bla {1} bla {2} bla"))
+                         ios_replace_tokens("bla {1} bla {2} bla"))
         self.assertEqual("bla %2$@ bla %1$@ bla",
-                         text_out._escape_ios_string("bla {2} bla {1} bla"))
+                         ios_replace_tokens("bla {2} bla {1} bla"))
 
     def test_escape_android(self):
         self.assertEqual(ur"""&lt; &gt; &amp; %% %% \' \" \’ \n \t \r \f""",
@@ -257,13 +265,17 @@ class MyTestCase(unittest.TestCase):
         languages, wordings_from_xlsx = text_in.read_excel('./test-data/test_translations.xlsx',
                                                            custom_format)
 
-        text_out.write_csv(languages, wordings_from_xlsx, 'test-out/wordings_custom.csv',
-                           custom_format)
-        text_out.write_json(languages, wordings_from_xlsx, 'test-out/wordings_custom.json')
+        with open('test-out/wordings_custom.csv', 'w') as f:
+            text_out.write_csv(languages, wordings_from_xlsx, f, custom_format)
+
+        with open('test-out/wordings_custom.json', 'w') as f:
+            text_out.write_json(languages, wordings_from_xlsx, f)
 
         # READ AND COMPARE
 
-        languages, wordings_from_json = text_in.read_file('test-out/wordings_custom.json')
+        with open('test-out/wordings_custom.json', 'r') as f:
+            languages, wordings_from_json = text_in.read_json(f)
+
         text_in.trimmed(wordings_from_json)
 
         languages, wordings_from_csv = text_in.read_file('test-out/wordings_custom.csv',
@@ -273,6 +285,13 @@ class MyTestCase(unittest.TestCase):
         self.maxDiff = None
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_json)
+
+    def test_raises_bad_format(self):
+        try:
+            text_in.read_file('./test-data/foo.bar')
+            self.fail()
+        except AttributeError as e:
+            pass  # success
 
     def test_csv_linefeed(self):
         sio = StringIO("1,2,3,4,5\naaa,bbb,ccc,d\ndd,eee")
@@ -366,7 +385,7 @@ class MyTestCase(unittest.TestCase):
     def test_collection_utils(self):
         range_g = (v for v in range(10))
         self.assertEqual('[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]',
-                          json.dumps(range_g, cls=StreamArrayJSONEncoder))
+                         json.dumps(range_g, cls=StreamArrayJSONEncoder))
         self.assertEqual('[]', json.dumps(range_g, cls=StreamArrayJSONEncoder))
 
         Foo = namedtuple_with_defaults("Foo", 'name', dict(name="bar"))

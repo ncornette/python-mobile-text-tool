@@ -12,7 +12,7 @@ def namedtuple_with_defaults(typename, field_names, default_values=()):
     T.__new__.__defaults__ = (None,) * len(T._fields)
     if isinstance(default_values, collections.Mapping):
         prototype = T(**default_values)
-    else:
+    else:  # pragma: no cover
         prototype = T(*default_values)
     T.__new__.__defaults__ = tuple(prototype)
     return T
@@ -22,13 +22,14 @@ class StreamArrayJSONEncoder(JSONEncoder):
     def default(self, o):
         if hasattr(o, '__iter__'):
             return StreamArray(o)
-        return JSONEncoder.default(self, o)
+        else:  # pragma: no cover
+            return JSONEncoder.default(self, o)
 
 
 class StreamArray(list):
 
     def __init__(self, o):
-        if not hasattr(o, '__iter__'):
+        if not hasattr(o, '__iter__'):  # pragma: no cover
             raise TypeError()
         self.generator = o
 

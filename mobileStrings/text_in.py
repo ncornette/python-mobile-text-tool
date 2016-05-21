@@ -213,7 +213,7 @@ def _read_json(file__obj):
 
 
 def read_json(file_or_path):
-    if hasattr(file_or_path, 'write'):
+    if hasattr(file_or_path, 'read'):
         return _read_json(file_or_path)
     else:
         with open(file_or_path, 'r') as f:
