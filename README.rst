@@ -14,7 +14,7 @@ Mobile Text Tools
 .. image:: https://img.shields.io/pypi/v/Mobile-Text-Tool.svg?maxAge=2592000
    :target: https://pypi.python.org/pypi/Mobile-Text-Tool
 
-Mobile Text Tools is a set of tools to edit translations for ``Android``
+Mobile Text Tools is a set of tools to export translations to ``Android``
 and ``IOS`` mobile applications. It provides a data model represented in
 ``json`` and can read and write different formats.
 
