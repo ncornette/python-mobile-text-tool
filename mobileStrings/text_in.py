@@ -135,10 +135,19 @@ def _read_rows(reader, specs=default_format_specs):
     return languages, wordings
 
 
+def _bool_value(something):
+    if not something:
+        return bool
+    if isinstance(something, (list, tuple)):
+        return lambda v: v in something
+    else:
+        return lambda v: v == something
+
+
 def _wordings_generator(languages, reader, specs):
 
-    exportable_rule = bool if not specs.exportable_value else lambda s: s == specs.exportable_value
-    is_comment_rule = bool if not specs.is_comment_value else lambda s: s == specs.is_comment_value
+    exportable_rule = _bool_value(specs.exportable_value)
+    is_comment_rule = _bool_value(specs.is_comment_value)
 
     for row_values in reader:
         if row_values:

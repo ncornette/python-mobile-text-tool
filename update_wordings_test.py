@@ -14,7 +14,7 @@ import json
 import os
 import unittest
 
-from mobileStrings.text_in import read_row_format_config, default_format_specs
+from mobileStrings.text_in import read_row_format_config, default_format_specs, _bool_value
 
 __author__ = 'nic'
 
@@ -358,6 +358,25 @@ class MyTestCase(unittest.TestCase):
         config = read_row_format_config('test_config_default.json')
         self.assertEqual(default_format_specs, config)
 
+    def test_bool_value(self):
+
+        bool_value = _bool_value(None)
+        self.assertTrue(bool_value('Yes'))
+        self.assertTrue(bool_value('yes'))
+        self.assertTrue(bool_value('No'))
+        self.assertFalse(bool_value(''))
+
+        yes_value = _bool_value(['Yes', 'yes'])
+        self.assertTrue(yes_value('Yes'))
+        self.assertTrue(yes_value('yes'))
+        self.assertFalse(yes_value('No'))
+        self.assertFalse(yes_value(''))
+
+        cap_yes_value = _bool_value('Yes')
+        self.assertTrue(cap_yes_value('Yes'))
+        self.assertFalse(cap_yes_value('yes'))
+        self.assertFalse(cap_yes_value('No'))
+        self.assertFalse(cap_yes_value(''))
 
 if __name__ == '__main__':
     unittest.main()
