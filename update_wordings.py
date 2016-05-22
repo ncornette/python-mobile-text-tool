@@ -4,7 +4,7 @@
 import argparse
 
 import mobileStrings
-from mobileStrings.text_in import read_row_format_config, fix_duplicates
+from mobileStrings.text_in import read_row_format_config, fix_duplicates, default_format_specs
 
 
 def get_parsed_arguments(output_required=True):
@@ -36,9 +36,9 @@ def get_parsed_arguments(output_required=True):
     return parsed_args
 
 
-def save_from_output_args(args, languages, wordings):
+def save_from_output_args(args, languages, wordings, format_specs=default_format_specs):
     for f in args.out_file:
-        mobileStrings.text_out.write_file(languages, wordings, f)
+        mobileStrings.text_out.write_file(languages, wordings, f, format_specs)
 
     if args.android_res_dir:
         mobileStrings.text_out.write_android_strings(languages, wordings, args.android_res_dir,
@@ -54,7 +54,7 @@ def main():
     rows_format_specs = read_row_format_config(args.format_config)
 
     languages, wordings = mobileStrings.text_in.read_file(args.input_file, rows_format_specs, False)
-    save_from_output_args(args, languages, fix_duplicates(wordings))
+    save_from_output_args(args, languages, fix_duplicates(wordings), rows_format_specs)
 
 
 if __name__ == '__main__':

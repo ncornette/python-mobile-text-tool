@@ -126,7 +126,7 @@ def _read_rows(reader, specs=default_format_specs):
     return languages, wordings
 
 
-def _bool_value(something):
+def _bool_in(something):
     if not something:
         return bool
     if isinstance(something, (list, tuple)):
@@ -137,8 +137,8 @@ def _bool_value(something):
 
 def _wordings_generator(languages, reader, specs):
 
-    exportable_rule = _bool_value(specs.exportable_value)
-    is_comment_rule = _bool_value(specs.is_comment_value)
+    exportable_rule = _bool_in(specs.exportable_value)
+    is_comment_rule = _bool_in(specs.is_comment_value)
 
     for row_values in reader:
         if row_values:

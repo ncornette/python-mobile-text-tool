@@ -256,6 +256,15 @@ def write_json(languages, wordings, file_or_path, indent=2):
             _json_dump(languages, wordings, f, indent)
 
 
+def _bool_out(something):
+    if not something:
+        return lambda b: b and 'True' or ''
+    if isinstance(something, (list, tuple)):
+        return lambda b: b and something[0] or ''
+    else:
+        return lambda b: b and something or ''
+
+
 # noinspection PyProtectedMember
 def _write_csv(languages, wordings, file_obj, format_specs):
     """
@@ -281,11 +290,18 @@ def _write_csv(languages, wordings, file_obj, format_specs):
 
     csv_writer.writerow(row)
 
+    exportable_rule = _bool_out(format_specs.exportable_value)
+    is_comment_rule = _bool_out(format_specs.is_comment_value)
+
     for wording in wordings:
         row = ['' for _ in range(format_specs.translations_start_col + len(languages))]
         row[format_specs.key_col] = wording.key
-        row[format_specs.exportable_col] = wording.exportable and 'Yes' or ''
-        row[format_specs.is_comment_col] = wording.is_comment and 'Yes' or ''
+        if format_specs.exportable_col == format_specs.is_comment_col:
+            row[format_specs.exportable_col] = \
+                exportable_rule(wording.exportable) or is_comment_rule(wording.is_comment)
+        else:
+            row[format_specs.exportable_col] = exportable_rule(wording.exportable)
+            row[format_specs.is_comment_col] = is_comment_rule(wording.is_comment)
         row[format_specs.comment_col] = wording.comment
 
         for k, v in format_specs.metadata_cols.items():
@@ -305,9 +321,9 @@ def write_csv(languages, wordings, file_or_path, format_specs=default_format_spe
             _write_csv(languages, wordings, f, format_specs)
 
 
-def write_file(languages, wordings, file_path):
+def write_file(languages, wordings, file_path, format_specs=default_format_specs):
     _, ext = os.path.splitext(file_path)
     if ext.lower() == '.json':
         write_json(languages, wordings, file_path)
     elif ext.lower() == '.csv':
-        write_csv(languages, wordings, file_path)
+        write_csv(languages, wordings, file_path, format_specs=format_specs)

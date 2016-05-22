@@ -16,8 +16,9 @@ import json
 import os
 import unittest
 
-from mobileStrings.text_in import read_row_format_config, default_format_specs, _bool_value, \
+from mobileStrings.text_in import read_row_format_config, default_format_specs, _bool_in, \
     FormatSpec
+from mobileStrings.text_out import _bool_out
 
 __author__ = 'nic'
 
@@ -263,10 +264,10 @@ class MyTestCase(unittest.TestCase):
     def test_export_import_custom(self):
 
         custom_format = FormatSpec(excel_sheet_reference='test_translations',
-                                   key_col=0, exportable_col=1, is_comment_col=2,
-                                   comment_col=0, translations_start_col=5,
-                                   exportable_value=None, is_comment_value=None,
-                                   metadata_cols={'foo': 4})
+                                   key_col=0, exportable_col=1, is_comment_col=1,
+                                   comment_col=0, translations_start_col=4,
+                                   exportable_value='EXPORT', is_comment_value='COMMENT',
+                                   metadata_cols={'default_lang': 4})
 
         languages, wordings_from_xlsx = text_in.read_excel('./test-data/test_translations.xlsx',
                                                            custom_format)
@@ -431,25 +432,37 @@ class MyTestCase(unittest.TestCase):
         config = read_row_format_config('./test-data/test_config_default.json')
         self.assertEqual(default_format_specs, config)
 
-    def test_bool_value(self):
-
-        bool_value = _bool_value(None)
+    def test_bool_value_in(self):
+        bool_value = _bool_in(None)
         self.assertTrue(bool_value('Yes'))
         self.assertTrue(bool_value('yes'))
         self.assertTrue(bool_value('No'))
         self.assertFalse(bool_value(''))
 
-        yes_value = _bool_value(['Yes', 'yes'])
+        yes_value = _bool_in(['Yes', 'yes'])
         self.assertTrue(yes_value('Yes'))
         self.assertTrue(yes_value('yes'))
         self.assertFalse(yes_value('No'))
         self.assertFalse(yes_value(''))
 
-        cap_yes_value = _bool_value('Yes')
+        cap_yes_value = _bool_in('Yes')
         self.assertTrue(cap_yes_value('Yes'))
         self.assertFalse(cap_yes_value('yes'))
         self.assertFalse(cap_yes_value('No'))
         self.assertFalse(cap_yes_value(''))
+
+    def test_bool_value_out(self):
+        bool_value = _bool_out(None)
+        self.assertEqual('True', bool_value(True))
+        self.assertEqual('', bool_value(False))
+
+        bool_value = _bool_out(['Yes', 'yes'])
+        self.assertEqual('Yes', bool_value(True))
+        self.assertEqual('', bool_value(False))
+
+        bool_value = _bool_out('Yes')
+        self.assertEqual('Yes', bool_value(True))
+        self.assertEqual('', bool_value(False))
 
 if __name__ == '__main__':
     unittest.main()
