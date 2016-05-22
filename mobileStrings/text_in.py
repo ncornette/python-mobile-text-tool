@@ -72,7 +72,7 @@ def _get_excel_openpyxl_rows(file_path, sheet=0, translations_start_col=-1):
     yield [v.value or '' for v in header_row]
 
     for row in iter_rows:
-        yield [v.value and v.value.replace(u'\u2028', '\n') or '' for v in row]
+        yield [v.value and unicode(v.value).replace(u'\u2028', '\n') or '' for v in row]
 
 
 def _check_duplicates(wordings, condition=lambda w: w.exportable and not w.is_comment,
