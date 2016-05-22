@@ -39,24 +39,27 @@ def double_percent(s):
     return single_percent.sub('\\1%%\\2', s)
 
 
-def _android_res_filename(key, base_filename='strings.xml'):
-    if not key:
-        return base_filename
+def _get_words(string):
+    s = re.sub(r'[^A-Za-z0-9_]', r'_', string)
+    s = re.sub(r'([A-Z])([a-z0-9])', r'_\1\2', s)
+    s = re.sub(r'_{2,}', r'_', s)
+    return s.split('_')
 
-    android_key = re.sub(r'[^A-Za-z0-9_]', r'_', key)
-    android_key = re.sub(r'([A-Z])', r'_\1', android_key).lower()
-    android_key = re.sub(r'_{2,}', r'_', android_key).lower()
-    return re.sub(r'([^\.]*)(\.?.*)', r'\1_{}\2'.format(android_key), base_filename)
+
+def _gen_file_name(default_name, bare_suffix, word_separator, word_func):
+    if not bare_suffix:
+        return default_name
+
+    suffix = word_separator.join(word_func(s) for s in _get_words(bare_suffix))
+    return '{}{}'.format(word_separator, suffix).join(os.path.splitext(default_name))
+
+
+def _android_res_filename(key, base_filename='strings.xml'):
+    return _gen_file_name(base_filename, key, '_', unicode.lower)
 
 
 def _ios_res_filename(key, base_filename='i18n.strings'):
-    if not key:
-        return base_filename
-
-    ios_key = re.sub(r'[^A-Za-z0-9]+', r'_', key)
-    split_key = re.split(r'_(\w)', ios_key[0].upper() + ios_key[1:])
-    ios_key = ''.join([odd(i) and s.upper() or s for i, s in enumerate(split_key)])
-    return re.sub(r'([^\.]*)(\.?.*)', r'\1{}\2'.format(ios_key), base_filename)
+    return _gen_file_name(base_filename, key, '', unicode.capitalize)
 
 
 def _escape_android_string(s):

@@ -72,41 +72,47 @@ class MyTestCase(unittest.TestCase):
 
     def test_resname_android(self):
         self.assertEqual('strings.xml',
-                         text_out._android_res_filename(''))
+                         text_out._android_res_filename(u''))
         self.assertEqual('strings_spam.xml',
-                         text_out._android_res_filename('spam'))
+                         text_out._android_res_filename(u'spam'))
         self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename('spam_eggs'))
+                         text_out._android_res_filename(u'spam_eggs'))
         self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename('spam.eggs'))
+                         text_out._android_res_filename(u'spam.eggs'))
         self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename('spam&eggs'))
+                         text_out._android_res_filename(u'spam&eggs'))
         self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename('spamEggs'))
+                         text_out._android_res_filename(u'spam._eggs'))
         self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename('spam_Eggs'))
+                         text_out._android_res_filename(u'spamEggs'))
         self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename('spam Eggs'))
+                         text_out._android_res_filename(u'spam_Eggs'))
+        self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename(u'spam Eggs'))
+        self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename(u'SPAM EGGS'))
 
     def test_resname_ios(self):
         self.assertEqual('i18n.strings',
-                         text_out._ios_res_filename(''))
+                         text_out._ios_res_filename(u''))
         self.assertEqual('i18nSpam.strings',
-                         text_out._ios_res_filename('spam'))
+                         text_out._ios_res_filename(u'spam'))
         self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename('spam.eggs'))
+                         text_out._ios_res_filename(u'spam.eggs'))
         self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename('spam_eggs'))
+                         text_out._ios_res_filename(u'spam_eggs'))
         self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename('spam&eggs'))
+                         text_out._ios_res_filename(u'spam&eggs'))
         self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename('spam._eggs'))
+                         text_out._ios_res_filename(u'spam._eggs'))
         self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename('spamEggs'))
+                         text_out._ios_res_filename(u'spamEggs'))
         self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename('spam Eggs'))
+                         text_out._ios_res_filename(u'spam Eggs'))
         self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename('spam eggs'))
+                         text_out._ios_res_filename(u'SPAM EGGS'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename(u'spam eggs'))
 
     def test_read(self):
         _, wordings = text_in.read_file('./test-data/test_translations.xlsx')
