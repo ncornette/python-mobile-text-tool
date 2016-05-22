@@ -117,48 +117,47 @@ class MyTestCase(unittest.TestCase):
 
     def test_read(self):
         _, wordings = text_in.read_file('./test-data/test_translations.xlsx')
-        wordings_from_xlsx = text_in.trimmed(wordings)
 
-        wordings_from_xlsx.next()
+        wordings.next()
 
-        next_wording = wordings_from_xlsx.next()
+        next_wording = wordings.next()
         self.assertEqual(next_wording.key, u'menu.welcome')
         self.assertTrue(next_wording.exportable)
         self.assertFalse(next_wording.is_comment)
         self.assertEqual(next_wording.translations['fr'], u'Bienvenue !')
 
-        next_wording = wordings_from_xlsx.next()
+        next_wording = wordings.next()
         self.assertEqual(next_wording.key, u'menu.home')
         self.assertTrue(next_wording.exportable)
         self.assertFalse(next_wording.is_comment)
         self.assertEqual(next_wording.translations['de'], u'Start')
 
-        next_wording = wordings_from_xlsx.next()
+        next_wording = wordings.next()
         self.assertEqual(next_wording.key, u'menu.news')
         self.assertTrue(next_wording.exportable)
         self.assertFalse(next_wording.is_comment)
         self.assertEqual(next_wording.translations['pl'], u'Nowo\u015bci')
 
-        next_wording = wordings_from_xlsx.next()
+        next_wording = wordings.next()
         self.assertEqual(next_wording.key, u'comment.section')
         self.assertTrue(next_wording.exportable)
         self.assertTrue(next_wording.is_comment)
 
-        next_wording = wordings_from_xlsx.next()
+        next_wording = wordings.next()
         self.assertEqual(next_wording.key, u'menu.contact')
         self.assertTrue(next_wording.exportable)
         self.assertFalse(next_wording.is_comment)
         self.assertEqual(next_wording.translations['ru'],
                          u'\u041a\u043e\u043d\u0442\u0430\u043a\u0442\u044b')
 
-        wordings_from_xlsx.next()
+        wordings.next()
 
-        next_wording = wordings_from_xlsx.next()
+        next_wording = wordings.next()
         self.assertEqual(next_wording.key, u'menu.share.not.exported')
         self.assertFalse(next_wording.exportable)
         self.assertFalse(next_wording.is_comment)
 
-        next_wording = wordings_from_xlsx.next()
+        next_wording = wordings.next()
         self.assertEqual(next_wording.key, u'menu.share')
         self.assertTrue(next_wording.exportable)
         self.assertFalse(next_wording.is_comment)
@@ -252,10 +251,8 @@ class MyTestCase(unittest.TestCase):
         # READ AND COMPARE
 
         languages, wordings_from_json = text_in.read_file('test-out/wordings.json')
-        text_in.trimmed(wordings_from_json)
 
         languages, wordings_from_csv = text_in.read_file('test-out/wordings.csv')
-        wordings_from_csv = text_in.trimmed(wordings_from_csv)
 
         self.maxDiff = None
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
@@ -283,11 +280,8 @@ class MyTestCase(unittest.TestCase):
         with open('test-out/wordings_custom.json', 'r') as f:
             languages, wordings_from_json = text_in.read_json(f)
 
-        text_in.trimmed(wordings_from_json)
-
         languages, wordings_from_csv = text_in.read_file('test-out/wordings_custom.csv',
                                                          custom_format, False)
-        wordings_from_csv = text_in.trimmed(wordings_from_csv)
 
         self.maxDiff = None
         self.assertItemsEqual(wordings_from_xlsx, wordings_from_csv)
@@ -373,21 +367,6 @@ class MyTestCase(unittest.TestCase):
             w(key='SECTION.B', is_comment=True), w(key='b.0'), w(key='b.1'),
             w(key='SECTION.C', is_comment=True)
         ], fixed_wordings)
-
-    def test_trim(self):
-        w = text_in.Wording
-        wordings = [
-            w(key='0', translations=OrderedDict(en='hello',   fr='bonjour ')),
-            w(key='1', translations=OrderedDict(en='hello\n', fr='bonjour\n\n\n')),
-            w(key='2', translations=OrderedDict(en='hello',  fr=' bonjour')),
-            w(key='3', translations=OrderedDict(en='\nhello', fr='\n\n\nbonjour'))
-        ]
-
-        wordings = text_in.trimmed(wordings)
-
-        expected_translations = OrderedDict(en='hello', fr='bonjour')
-        for w in wordings:
-            self.assertEqual(expected_translations, w.translations)
 
     def test_collection_utils(self):
         range_g = (v for v in range(10))

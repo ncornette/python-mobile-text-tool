@@ -112,14 +112,6 @@ def fix_duplicates(wordings, merge_sections=True):
     return new_wordings
 
 
-def trimmed(wordings):
-    for w in wordings:
-        for lang, t in w.translations.items():
-            if hasattr(t, 'strip'):
-                w.translations[lang] = t.strip()
-        yield w
-
-
 def _read_rows(reader, specs=default_format_specs):
     languages = reader.next()[specs.translations_start_col:]
     wordings = _wordings_generator(languages, reader, specs)

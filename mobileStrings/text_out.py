@@ -221,7 +221,7 @@ def _export_lang_file(
             elif wording.exportable:
                 translation = wording.translations.get(from_language)
                 if translation:
-                    writer.write_string(wording.key, translation)
+                    writer.write_string(wording.key, translation.strip())
     finally:
         writer.write_footer()
         f.close()
