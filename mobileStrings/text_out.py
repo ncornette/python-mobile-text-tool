@@ -134,18 +134,28 @@ class ANDResourceWriter(object):
         return _android_res_filename
 
     def write_header(self, lang):
-        self.out_file.write(u'<?xml version="1.0" encoding="UTF-8"?>\n<resources>\n')
+        self.out_file.write(
+                u'<?xml version="1.0" encoding="UTF-8"?>\n'
+                u'\n'
+                u'<!-- Generated Android file for locale : {} -->\n'
+                u'\n'
+                u'<resources>\n'.format(lang))
 
     def write_comment(self, comment):
-        self.out_file.write(u'\n  <!-- {} -->\n'.format(comment))
+        self.out_file.write(
+                u'\n'
+                u'  <!-- {} -->\n'.format(comment))
 
     def write_string(self, key, string):
-        self.out_file.write(u'  <string name="{}">'.format(key.replace(".", "_")))
+        self.out_file.write(
+                u'  <string name="{}">'.format(key.replace(".", "_")))
         self.out_file.write(_escape_android_string(string))
-        self.out_file.write(u'</string>\n')
+        self.out_file.write(
+                u'</string>\n')
 
     def write_footer(self):
-        self.out_file.write(u'</resources>')
+        self.out_file.write(
+                u'</resources>')
 
 
 class IOSResourceWriter(object):
@@ -162,15 +172,21 @@ class IOSResourceWriter(object):
 
     def write_header(self, lang):
         self.out_file.write(
-            u'// Generated IOS file for locale : {}\n\n"language"="{}";\n'.format(lang, lang))
+                u'// Generated IOS file for locale : {}\n'
+                u'\n'
+                u'"language"="{}";\n'.format(lang, lang))
 
     def write_comment(self, comment):
-        self.out_file.write(u'\n// {}\n'.format(comment))
+        self.out_file.write(
+                u'\n'
+                u'// {}\n'.format(comment))
 
     def write_string(self, key, string):
-        self.out_file.write(u'"{}"="'.format(key))
+        self.out_file.write(
+                u'"{}"="'.format(key))
         self.out_file.write(_escape_ios_string(string))
-        self.out_file.write(u'";\n')
+        self.out_file.write(
+                u'";\n')
 
     def write_footer(self):
         pass
