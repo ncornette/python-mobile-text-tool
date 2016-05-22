@@ -3,7 +3,7 @@ from os import path
 
 from setuptools import setup
 from pip.req import parse_requirements
-from codecs import open
+import codecs
 
 install_reqs = parse_requirements('./requirements.txt', session=False)
 reqs = [str(ir.req) for ir in install_reqs]
@@ -11,11 +11,11 @@ reqs = [str(ir.req) for ir in install_reqs]
 here = path.abspath(path.dirname(__file__))
 
 # Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
+with codecs.open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='Mobile-Text-Tool',
-      version='0.9',
+      version='1.0',
       description='Tools for editing translations in mobile apps',
       license='MIT',
       classifiers=[

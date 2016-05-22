@@ -290,7 +290,7 @@ class MyTestCase(unittest.TestCase):
         try:
             text_in.read_file('./test-data/foo.bar')
             self.fail()
-        except AttributeError as e:
+        except AttributeError:
             pass  # success
 
     def test_csv_linefeed(self):
