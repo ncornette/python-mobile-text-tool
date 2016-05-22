@@ -91,6 +91,8 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual('strings_spam_eggs.xml',
                          text_out._android_res_filename(u'spam Eggs'))
         self.assertEqual('strings_spam_eggs.xml',
+                         text_out._android_res_filename(u'Spam Eggs'))
+        self.assertEqual('strings_spam_eggs.xml',
                          text_out._android_res_filename(u'SPAM EGGS'))
 
     def test_resname_ios(self):
@@ -110,6 +112,8 @@ class MyTestCase(unittest.TestCase):
                          text_out._ios_res_filename(u'spamEggs'))
         self.assertEqual('i18nSpamEggs.strings',
                          text_out._ios_res_filename(u'spam Eggs'))
+        self.assertEqual('i18nSpamEggs.strings',
+                         text_out._ios_res_filename(u'Spam Eggs'))
         self.assertEqual('i18nSpamEggs.strings',
                          text_out._ios_res_filename(u'SPAM EGGS'))
         self.assertEqual('i18nSpamEggs.strings',

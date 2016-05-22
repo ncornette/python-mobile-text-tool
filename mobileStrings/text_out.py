@@ -40,10 +40,10 @@ def double_percent(s):
 
 
 def _get_words(string):
-    s = re.sub(r'[^A-Za-z0-9_]', r'_', string)
-    s = re.sub(r'([A-Z])([a-z0-9])', r'_\1\2', s)
-    s = re.sub(r'_{2,}', r'_', s)
-    return s.split('_')
+    s = re.sub(r'[^A-Za-z0-9]', r' ', string)
+    s = re.sub(r'([A-Z])([a-z0-9])', r' \1\2', s).strip()
+    s = re.sub(r' {2,}', r' ', s)
+    return s.split(' ')
 
 
 def _gen_file_name(default_name, bare_suffix, word_separator, word_func):
