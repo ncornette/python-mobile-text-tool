@@ -76,7 +76,7 @@ def _get_excel_openpyxl_rows(file_path, sheet=0, translations_start_col=-1):
 
 
 def _check_duplicates(wordings, condition=lambda w: w.exportable and not w.is_comment,
-                      message='ERROR: Duplicate key entry: "'):
+                      message='WARN: Duplicate key entry overwritten: "'):
     duplicate_keys = collections.defaultdict(lambda: [])
 
     for index, wording in enumerate(wordings):
@@ -96,7 +96,8 @@ def find_duplicate_wordings(wordings):
 
 
 def find_duplicate_comment_keys(wordings):
-    return _check_duplicates(wordings, lambda w: w.is_comment, 'WARN: Duplicate comment key: "')
+    return _check_duplicates(wordings, lambda w: w.is_comment,
+                             'INFO: Merged duplicate section for comment key: "')
 
 
 def fix_duplicates(wordings, merge_sections=True):

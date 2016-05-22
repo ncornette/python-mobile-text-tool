@@ -364,14 +364,14 @@ class MyTestCase(unittest.TestCase):
             w(key='SECTION.A', is_comment=True), w(key='a1'),
         ]
 
-        fixed = text_in.fix_duplicates(wordings)
+        fixed_wordings = text_in.fix_duplicates(wordings)
 
         self.assertEqual([
             w(key='___'),
             w(key='SECTION.A', is_comment=True), w(key='a.0'), w(key='a1'),
             w(key='SECTION.B', is_comment=True), w(key='b.0'), w(key='b.1'),
             w(key='SECTION.C', is_comment=True)
-        ], fixed)
+        ], fixed_wordings)
 
     def test_trim(self):
         w = text_in.Wording

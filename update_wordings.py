@@ -4,7 +4,7 @@
 import argparse
 
 import mobileStrings
-from mobileStrings.text_in import read_row_format_config
+from mobileStrings.text_in import read_row_format_config, fix_duplicates
 
 
 def get_parsed_arguments(output_required=True):
@@ -54,7 +54,7 @@ def main():
     rows_format_specs = read_row_format_config(args.format_config)
 
     languages, wordings = mobileStrings.text_in.read_file(args.input_file, rows_format_specs, False)
-    save_from_output_args(args, languages, wordings)
+    save_from_output_args(args, languages, fix_duplicates(wordings))
 
 
 if __name__ == '__main__':

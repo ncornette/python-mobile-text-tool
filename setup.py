@@ -15,11 +15,11 @@ with codecs.open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(name='Mobile-Text-Tool',
-      version='1.0',
+      version='1.1',
       description='Tools for editing translations in mobile apps',
       license='MIT',
       classifiers=[
-          'Development Status :: 4 - Beta',
+          'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
           'Topic :: Software Development :: Build Tools',
           'License :: OSI Approved :: MIT License',
