@@ -81,6 +81,10 @@ Default csv and xls format specification configuration :
      "metadata_cols": {}
    }
 
+- ``excel_sheet_reference``: is the worksheet number (int) or name (string) for excel import
+- ``exportable_value``: is the value to match in ``exportable_col`` to tell if the value will be exported to Android or IOS, can be a string or a list of strings, ``null`` will match ``True`` for any non empty value in the column.
+- ``is_comment_value``: same as ``exportable_value`` to tell if the line is a comment
+
 Example csv or xls table with default format :
 
 +-----------------+--------------+--------------+--------------+-----------+-----------+--------------+
