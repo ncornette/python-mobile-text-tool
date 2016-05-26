@@ -415,35 +415,46 @@ class MyTestCase(unittest.TestCase):
 
     def test_bool_value_in(self):
         bool_value = _bool_in(None)
+        self.assertTrue(bool_value('True'))
         self.assertTrue(bool_value('Yes'))
         self.assertTrue(bool_value('yes'))
         self.assertTrue(bool_value('No'))
         self.assertFalse(bool_value(''))
 
-        yes_value = _bool_in(['Yes', 'yes'])
-        self.assertTrue(yes_value('Yes'))
-        self.assertTrue(yes_value('yes'))
-        self.assertFalse(yes_value('No'))
-        self.assertFalse(yes_value(''))
+        true_value = _bool_in(['True', 'true'])
+        self.assertTrue(true_value('True'))
+        self.assertTrue(true_value('true'))
+        self.assertFalse(true_value('False'))
+        self.assertFalse(true_value(''))
 
-        cap_yes_value = _bool_in('Yes')
-        self.assertTrue(cap_yes_value('Yes'))
-        self.assertFalse(cap_yes_value('yes'))
-        self.assertFalse(cap_yes_value('No'))
-        self.assertFalse(cap_yes_value(''))
+        cap_true_value = _bool_in('True')
+        self.assertTrue(cap_true_value('True'))
+        self.assertFalse(cap_true_value('true'))
+        self.assertFalse(cap_true_value('No'))
+        self.assertFalse(cap_true_value(''))
+
+        bool_value = _bool_in('')
+        self.assertFalse(bool_value('Yes'))
+        self.assertFalse(bool_value('yes'))
+        self.assertFalse(bool_value('No'))
+        self.assertTrue(bool_value(''))
 
     def test_bool_value_out(self):
         bool_value = _bool_out(None)
-        self.assertEqual('True', bool_value(True))
+        self.assertEqual('Yes', bool_value(True))
         self.assertEqual('', bool_value(False))
 
         bool_value = _bool_out(['Yes', 'yes'])
         self.assertEqual('Yes', bool_value(True))
-        self.assertEqual('', bool_value(False))
+        self.assertEqual('No', bool_value(False))
 
         bool_value = _bool_out('Yes')
         self.assertEqual('Yes', bool_value(True))
-        self.assertEqual('', bool_value(False))
+        self.assertEqual('No', bool_value(False))
+
+        bool_value = _bool_out('')
+        self.assertEqual('', bool_value(True))
+        self.assertEqual('No', bool_value(False))
 
 if __name__ == '__main__':
     unittest.main()

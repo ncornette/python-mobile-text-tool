@@ -264,12 +264,12 @@ def write_json(languages, wordings, file_or_path, indent=2):
 
 
 def _bool_out(something):
-    if not something:
-        return lambda b: b and 'True' or ''
+    if something is None:
+        return lambda b: b and 'Yes' or ''
     if isinstance(something, (list, tuple)):
-        return lambda b: b and something[0] or ''
+        return lambda b: something[0] if b else 'No'
     else:
-        return lambda b: b and something or ''
+        return lambda b: something if b else 'No'
 
 
 # noinspection PyProtectedMember
