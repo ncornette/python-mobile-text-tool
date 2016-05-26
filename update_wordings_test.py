@@ -2,7 +2,6 @@
 # coding=utf-8
 
 from StringIO import StringIO
-from collections import OrderedDict
 import shutil
 from functools import partial
 
@@ -28,96 +27,95 @@ class MyTestCase(unittest.TestCase):
     def test_replace_tokens_android(self):
         android_replace_tokens = partial(text_out.replace_tokens, make_token=text_out.android_token)
 
-        self.assertEqual("blablabla",
-                         android_replace_tokens("blablabla"))
-        self.assertEqual("bla %s blabla",
-                         android_replace_tokens("bla {} blabla"))
-        self.assertEqual("bla %s bla %s bla",
-                         android_replace_tokens("bla {} bla {} bla"))
-        self.assertEqual("bla %1$s bla %2$s bla",
-                         android_replace_tokens("bla {1} bla {2} bla"))
-        self.assertEqual("bla %2$s bla %1$s bla",
-                         android_replace_tokens("bla {2} bla {1} bla"))
+        self.assertEqual("blablabla",               android_replace_tokens("blablabla"))
+        self.assertEqual("bla %s blabla",           android_replace_tokens("bla {} blabla"))
+        self.assertEqual("bla %s bla %s bla",       android_replace_tokens("bla {} bla {} bla"))
+        self.assertEqual("bla %1$s bla %2$s bla",   android_replace_tokens("bla {1} bla {2} bla"))
+        self.assertEqual("bla %2$s bla %1$s bla",   android_replace_tokens("bla {2} bla {1} bla"))
+        self.assertEqual("bla %99$s bla %1$s bla",   android_replace_tokens("bla {99} bla {1} bla"))
+        self.assertEqual("bla %s bla %s",           android_replace_tokens("bla %s bla %s"))
+        self.assertEqual("bla %1$s bla %2$s bla",   android_replace_tokens("bla %1$s bla %2$s bla"))
 
+    def test_replace_tokens_no_replace(self):
         self.assertEqual("bla {1} bla {2}", text_out.replace_tokens("bla {1} bla {2}", None))
 
     def test_replace_tokens_ios(self):
         ios_replace_tokens = partial(text_out.replace_tokens, make_token=text_out.ios_token)
 
-        self.assertEqual("blablabla",
-                         ios_replace_tokens("blablabla"))
-        self.assertEqual("bla %@ blabla",
-                         ios_replace_tokens("bla {} blabla"))
-        self.assertEqual("bla %@ bla %@ bla",
-                         ios_replace_tokens("bla {} bla {} bla"))
-        self.assertEqual("bla %1$@ bla %2$@ bla",
-                         ios_replace_tokens("bla {1} bla {2} bla"))
-        self.assertEqual("bla %2$@ bla %1$@ bla",
-                         ios_replace_tokens("bla {2} bla {1} bla"))
+        self.assertEqual("blablabla",               ios_replace_tokens("blablabla"))
+        self.assertEqual("bla %@ blabla",           ios_replace_tokens("bla {} blabla"))
+        self.assertEqual("bla %@ bla %@ bla",       ios_replace_tokens("bla {} bla {} bla"))
+        self.assertEqual("bla %1$@ bla %2$@ bla",   ios_replace_tokens("bla {1} bla {2} bla"))
+        self.assertEqual("bla %2$@ bla %1$@ bla",   ios_replace_tokens("bla {2} bla {1} bla"))
+        self.assertEqual("bla %99$@ bla %1$@ bla",  ios_replace_tokens("bla {99} bla {1} bla"))
+        self.assertEqual("bla %@ bla %@",           ios_replace_tokens("bla %@ bla %@"))
+        self.assertEqual("bla %1$@ bla %2$@ bla",   ios_replace_tokens("bla %1$@ bla %2$@ bla"))
 
     def test_escape_android(self):
         self.assertEqual(ur"""&lt; &gt; &amp; %% %% \' \" \’ \n \t \r \f""",
                          text_out._escape_android_string(u'< > & % %% \' " ’ \n \t \r \f'))
+
         self.assertEqual("%%10 bla 10%% bla 10%%",
                          text_out._escape_android_string("%10 bla 10% bla 10%"))
         self.assertEqual("%%10 bla 10%% bla 10%%",
                          text_out._escape_android_string("%%10 bla 10%% bla 10%%"))
 
+        self.assertEqual("%s bla %s bla %s",
+                         text_out._escape_android_string("%s bla %s bla %s"))
+        self.assertEqual("%1$s bla %2$s bla %3$s",
+                         text_out._escape_android_string("%1$s bla %2$s bla %3$s"))
+
+        self.assertEqual("%s bla %s bla %s",
+                         text_out._escape_android_string("%@ bla %@ bla %@"))
+        self.assertEqual("%1$s bla %2$s bla %3$s",
+                         text_out._escape_android_string("%1$@ bla %2$@ bla %3$@"))
+
     def test_escape_ios(self):
         self.assertEqual(ur"""< > & % %% ' \" ’ \n \t \r \f""",
                          text_out._escape_ios_string(u"< > & % %% ' \" ’ \n \t \r \f"))
+
         self.assertEqual("%10 bla 10% bla 10%",
                          text_out._escape_ios_string("%10 bla 10% bla 10%"))
         self.assertEqual("%%10 bla 10%% bla 10%%",
                          text_out._escape_ios_string("%%10 bla 10%% bla 10%%"))
 
+        self.assertEqual("%@ bla %@ bla %@",
+                         text_out._escape_ios_string("%@ bla %@ bla %@"))
+        self.assertEqual("%1$@ bla %2$@ bla %3$@",
+                         text_out._escape_ios_string("%1$@ bla %2$@ bla %3$@"))
+        self.assertEqual("%%1$@ bla %%2$@ bla %%99$@",
+                         text_out._escape_ios_string("%%1$@ bla %%2$@ bla %%99$@"))
+
+        self.assertEqual("%@ bla %@ bla %@",
+                         text_out._escape_ios_string("%s bla %s bla %s"))
+        self.assertEqual("%1$@ bla %2$@ bla %99$@",
+                         text_out._escape_ios_string("%1$s bla %2$s bla %99$s"))
+
     def test_resname_android(self):
-        self.assertEqual('strings.xml',
-                         text_out._android_res_filename(u''))
-        self.assertEqual('strings_spam.xml',
-                         text_out._android_res_filename(u'spam'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'spam_eggs'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'spam.eggs'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'spam&eggs'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'spam._eggs'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'spamEggs'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'spam_Eggs'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'spam Eggs'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'Spam Eggs'))
-        self.assertEqual('strings_spam_eggs.xml',
-                         text_out._android_res_filename(u'SPAM EGGS'))
+        self.assertEqual('strings.xml',             text_out._android_res_filename(u''))
+        self.assertEqual('strings_spam.xml',        text_out._android_res_filename(u'spam'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'spam_eggs'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'spam.eggs'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'spam&eggs'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'spam._eggs'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'spamEggs'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'spam_Eggs'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'spam Eggs'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'Spam Eggs'))
+        self.assertEqual('strings_spam_eggs.xml',   text_out._android_res_filename(u'SPAM EGGS'))
 
     def test_resname_ios(self):
-        self.assertEqual('i18n.strings',
-                         text_out._ios_res_filename(u''))
-        self.assertEqual('i18nSpam.strings',
-                         text_out._ios_res_filename(u'spam'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'spam.eggs'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'spam_eggs'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'spam&eggs'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'spam._eggs'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'spamEggs'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'spam Eggs'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'Spam Eggs'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'SPAM EGGS'))
-        self.assertEqual('i18nSpamEggs.strings',
-                         text_out._ios_res_filename(u'spam eggs'))
+        self.assertEqual('i18n.strings',            text_out._ios_res_filename(u''))
+        self.assertEqual('i18nSpam.strings',        text_out._ios_res_filename(u'spam'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'spam.eggs'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'spam_eggs'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'spam&eggs'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'spam._eggs'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'spamEggs'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'spam Eggs'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'Spam Eggs'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'SPAM EGGS'))
+        self.assertEqual('i18nSpamEggs.strings',    text_out._ios_res_filename(u'spam eggs'))
 
     def test_read(self):
         _, wordings = text_in.read_file('./test-data/test_translations.xlsx')

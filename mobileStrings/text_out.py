@@ -35,7 +35,13 @@ def replace_tokens(s, make_token=None):
     return ''.join(make_token(v) if odd(i) else v for i, v in enumerate(split))
 
 
-def double_percent(s):
+def normalize_tokens(s):
+    s = re.sub(r'%(\d{1,2})\$[@s]', r'{\1}', s)
+    s = re.sub(r'%[@s]', r'{}', s)
+    return s
+
+
+def escape_percent(s):
     return single_percent.sub('\\1%%\\2', s)
 
 
@@ -87,7 +93,8 @@ def _escape_android_string(s):
 
     string = escape_chars(s)
     string = saxutils.escape(string)
-    string = double_percent(string)
+    string = normalize_tokens(string)
+    string = escape_percent(string)
     string = replace_tokens(string, android_token)
     return string
 
@@ -116,7 +123,7 @@ def _escape_ios_string(s):
         return new_ios_string
 
     string = escape_chars(s)
-    # string = double_percent(string)
+    string = normalize_tokens(string)
     string = replace_tokens(string, ios_token)
     return string
 
