@@ -119,7 +119,7 @@ def _read_rows(reader, specs=default_format_specs):
 
 
 def _bool_in(something):
-    if not something:
+    if something == None:
         return bool
     if isinstance(something, (list, tuple)):
         return lambda v: v in something
